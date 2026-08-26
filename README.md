@@ -34,7 +34,8 @@ vem de `avatar_url`/`picture`. Falta apenas ligar as credenciais:
    - *Authorized JavaScript origins*: `http://localhost:3000` e a URL de produção.
    - *Authorized redirect URIs*: `https://<ref>.supabase.co/auth/v1/callback` (é o Supabase que recebe o retorno do Google, não o app).
 3. **Supabase > Authentication > Providers > Google**: ligue o provider e cole *Client ID* e *Client Secret*.
-4. **Supabase > Authentication > URL Configuration > Redirect URLs**: `http://localhost:3000/auth/callback`, `https://<seu-dominio>/auth/callback` e, se usar previews, `https://*-<seu-escopo>.vercel.app/auth/callback`.
+4. **Supabase > Authentication > URL Configuration**: `Site URL` = domínio de produção, e em *Redirect URLs* `http://localhost:3000/auth/callback`, `https://<seu-dominio>/auth/callback` e, se usar previews, `https://*-<seu-escopo>.vercel.app/auth/callback`.
+   O `Site URL` é o destino de fallback: quando o `redirect_to` do pedido não bate com nenhuma entrada da lista, o Supabase manda a pessoa para lá em silêncio — deixar `http://localhost:3000` é o motivo clássico de "loguei em produção e caí no localhost". Por isso o botão usa `NEXT_PUBLIC_SITE_URL` (`src/lib/public-url.ts`) em vez do endereço aberto no navegador: cada deploy da Vercel também responde numa URL com hash, que nunca estaria na lista.
 
 Quem já tem conta de e-mail/senha com o mesmo endereço do Google cai na mesma
 conta: o Supabase liga as identidades automaticamente quando os dois e-mails

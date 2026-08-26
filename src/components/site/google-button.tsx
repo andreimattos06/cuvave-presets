@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
+import { publicOrigin } from "@/lib/public-url";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 
@@ -12,7 +13,7 @@ export function GoogleButton({ next = "/" }: { next?: string }) {
   async function handleClick() {
     setLoading(true);
     const supabase = createClient();
-    const callback = new URL("/auth/callback", window.location.origin);
+    const callback = new URL("/auth/callback", publicOrigin());
     callback.searchParams.set("next", next);
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",

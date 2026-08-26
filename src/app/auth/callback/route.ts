@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { safeNextPath } from "@/lib/url";
+import { getOrigin, safeNextPath } from "@/lib/url";
 
 /**
  * Ponto único de retorno para os fluxos PKCE do Supabase: OAuth (Google),
@@ -37,7 +37,10 @@ function backToLogin(origin: string, message: string, next: string) {
 }
 
 export async function GET(request: NextRequest) {
-  const { searchParams, origin } = request.nextUrl;
+  const { searchParams } = request.nextUrl;
+  // Domínio canônico, não o host do request: um deploy da Vercel também atende
+  // pela URL com hash, e terminar a sessão lá deixaria a pessoa fora do site.
+  const origin = await getOrigin();
   const code = searchParams.get("code");
   const next = safeNextPath(searchParams.get("next"));
   const error = searchParams.get("error");

@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import type { EmailOtpType } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
-import { safeNextPath } from "@/lib/url";
+import { getOrigin, safeNextPath } from "@/lib/url";
 
 const TYPES: EmailOtpType[] = [
   "signup",
@@ -20,7 +20,8 @@ const TYPES: EmailOtpType[] = [
  * navegador ou celular, que é como a maioria das pessoas abre a caixa de entrada.
  */
 export async function GET(request: NextRequest) {
-  const { searchParams, origin } = request.nextUrl;
+  const { searchParams } = request.nextUrl;
+  const origin = await getOrigin();
   const tokenHash = searchParams.get("token_hash");
   const type = searchParams.get("type");
   const next = safeNextPath(searchParams.get("next"));
