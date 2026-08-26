@@ -7,7 +7,7 @@ import { NewBandForm } from "@/components/catalog/new-band-form";
 import { Music2, Disc3 } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "Bandas — Cuvave Presets",
+  title: "Bandas — M-Vave Presets",
   description: "Navegue pelas bandas com presets enviados pela comunidade.",
 };
 

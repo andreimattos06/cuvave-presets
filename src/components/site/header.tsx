@@ -18,7 +18,7 @@ export async function Header() {
           <span className="flex size-8 items-center justify-center rounded-lg bg-primary/15 text-primary">
             <Guitar className="size-4" />
           </span>
-          <span className="text-gradient">Cuvave Presets</span>
+          <span className="text-gradient">M-Vave Presets</span>
         </Link>
 
         <nav className="hidden items-center gap-1 sm:flex">

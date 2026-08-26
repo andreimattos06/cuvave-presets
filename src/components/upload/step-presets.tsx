@@ -6,12 +6,14 @@ import {
   useUploadWizard,
 } from "@/lib/store/upload-wizard";
 import { PedalBoard } from "@/components/pedalboard/pedal-board";
+import { DeviceTransfer } from "@/components/mvave/device-transfer";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { PedalModel, PresetSettings } from "@/types/pedal";
 import { Guitar, Plus, Trash2 } from "lucide-react";
+import { LIMITS } from "@/lib/validations/limits";
 
 export function StepPresets({ models }: { models: PedalModel[] }) {
   const { tracks, addPreset, updatePreset, removePreset } = useUploadWizard();
@@ -106,7 +108,7 @@ export function StepPresets({ models }: { models: PedalModel[] }) {
             <Input
               id="preset-name"
               value={preset.name}
-              maxLength={40}
+              maxLength={LIMITS.presetNameMax}
               onChange={(e) =>
                 updatePreset(track.localId, preset.localId, {
                   name: e.target.value,
@@ -124,22 +126,32 @@ export function StepPresets({ models }: { models: PedalModel[] }) {
           </div>
         </div>
 
-        {track.presets.length > 1 && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => {
-              removePreset(track.localId, preset.localId);
-              setActivePreset(
-                track.presets.find((p) => p.localId !== preset.localId)?.localId ??
-                  "",
-              );
-            }}
-          >
-            <Trash2 className="size-4" />
-            Remover preset
-          </Button>
-        )}
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Puxa o som direto do aparelho em vez de refazer knob por knob. */}
+          <DeviceTransfer
+            model={model}
+            presetName={preset.name}
+            settings={preset.settings}
+            onImport={changeSettings}
+          />
+
+          {track.presets.length > 1 && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                removePreset(track.localId, preset.localId);
+                setActivePreset(
+                  track.presets.find((p) => p.localId !== preset.localId)?.localId ??
+                    "",
+                );
+              }}
+            >
+              <Trash2 className="size-4" />
+              Remover preset
+            </Button>
+          )}
+        </div>
       </div>
 
       <PedalBoard

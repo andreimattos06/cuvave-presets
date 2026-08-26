@@ -3,8 +3,8 @@
 import { Led } from "./led";
 
 /**
- * Serigrafia curva acima do footswitch com o LED no ápice — o traço mais
- * característico do painel da Cuvave Baby ("IR CAB ⌒ REVERB").
+ * Serigrafia curva acima do footswitch, com o LED entre o arco e o botão —
+ * o traço mais característico do painel da M-Vave Baby ("IR CAB ⌒ REVERB").
  */
 export function ArcLabel({
   left,
@@ -41,7 +41,8 @@ export function ArcLabel({
           </textPath>
         </text>
       </svg>
-      <span className="absolute top-[3px]">
+      {/* Abaixo do arco: no ápice o LED cobriria a serigrafia. */}
+      <span className="absolute bottom-0">
         <Led color={ledColor} on={ledOn} />
       </span>
     </div>

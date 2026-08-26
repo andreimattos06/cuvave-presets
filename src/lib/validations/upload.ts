@@ -1,14 +1,30 @@
 import { z } from "zod";
+import { LIMITS } from "./limits";
+
+// Tetos generosos para o maior painel existente (Tank-G: 7 blocos, 15 knobs) e
+// ainda assim baixos o bastante para não deixar um cliente forjado usar
+// `settings` como saco de bytes. O que sobra é descartado na sanitização, que
+// compara o preset com a config real do modelo.
+const MAX_BLOCKS = 32;
+const MAX_PARAMS = 32;
+
+const finiteNumber = z.number().finite();
 
 const presetSettingsSchema = z.object({
-  blocks: z.record(
-    z.string(),
-    z.object({
-      enabled: z.boolean(),
-      params: z.record(z.string(), z.number()),
-    }),
-  ),
-  globalKnobs: z.record(z.string(), z.number()),
+  blocks: z
+    .record(
+      z.string().max(64),
+      z.object({
+        enabled: z.boolean(),
+        params: z
+          .record(z.string().max(64), finiteNumber)
+          .refine((p) => Object.keys(p).length <= MAX_PARAMS, "Preset inválido."),
+      }),
+    )
+    .refine((b) => Object.keys(b).length <= MAX_BLOCKS, "Preset inválido."),
+  globalKnobs: z
+    .record(z.string().max(64), finiteNumber)
+    .refine((k) => Object.keys(k).length <= MAX_PARAMS, "Preset inválido."),
 });
 
 export const presetInputSchema = z.object({
@@ -16,7 +32,7 @@ export const presetInputSchema = z.object({
     .string()
     .trim()
     .min(1, "Dê um nome ao preset (ex.: solo, refrão).")
-    .max(40, "Use no máximo 40 caracteres."),
+    .max(LIMITS.presetNameMax, `Use no máximo ${LIMITS.presetNameMax} caracteres.`),
   settings: presetSettingsSchema,
 });
 
@@ -27,12 +43,15 @@ export const trackInputSchema = z.object({
     .string()
     .trim()
     .min(1, "Dê um nome ao instrumento (ex.: guitarra principal).")
-    .max(60, "Use no máximo 60 caracteres."),
+    .max(LIMITS.trackNameMax, `Use no máximo ${LIMITS.trackNameMax} caracteres.`),
   pedalModelId: z.string().uuid("Escolha a pedaleira deste instrumento."),
   presets: z
     .array(presetInputSchema)
     .min(1, "Cada instrumento precisa de pelo menos um preset.")
-    .max(8, "Um instrumento aceita no máximo 8 presets."),
+    .max(
+      LIMITS.presetsPerTrack,
+      `Um instrumento aceita no máximo ${LIMITS.presetsPerTrack} presets.`,
+    ),
 });
 
 export const uploadInputSchema = z.object({
@@ -40,13 +59,20 @@ export const uploadInputSchema = z.object({
   title: z
     .string()
     .trim()
-    .min(3, "Dê um nome ao envio (ex.: versão do álbum).")
-    .max(80, "Use no máximo 80 caracteres."),
-  note: z.string().trim().max(400, "Use no máximo 400 caracteres.").optional(),
+    .min(LIMITS.uploadTitleMin, "Dê um nome ao envio (ex.: versão do álbum).")
+    .max(LIMITS.uploadTitleMax, `Use no máximo ${LIMITS.uploadTitleMax} caracteres.`),
+  note: z
+    .string()
+    .trim()
+    .max(LIMITS.uploadNoteMax, `Use no máximo ${LIMITS.uploadNoteMax} caracteres.`)
+    .optional(),
   tracks: z
     .array(trackInputSchema)
     .min(1, "Adicione pelo menos um instrumento.")
-    .max(10, "São no máximo 10 instrumentos por envio."),
+    .max(
+      LIMITS.tracksPerUpload,
+      `São no máximo ${LIMITS.tracksPerUpload} instrumentos por envio.`,
+    ),
 });
 
 export type UploadInput = z.infer<typeof uploadInputSchema>;

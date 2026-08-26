@@ -15,7 +15,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const upload = await getUploadById(uploadId).catch(() => null);
   if (!upload) return { title: "Envio não encontrado" };
   return {
-    title: `${upload.title} — Cuvave Presets`,
+    title: `${upload.title} — M-Vave Presets`,
     description:
       upload.note ??
       `Presets enviados por @${upload.author?.username ?? "um guitarrista"}.`,

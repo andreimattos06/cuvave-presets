@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 /**
- * Footswitch cromado do tipo usado nas Cuvave: cúpula metálica polida sobre
+ * Footswitch cromado do tipo usado nas M-Vave: cúpula metálica polida sobre
  * uma porca sextavada, com afundamento real ao pisar.
  */
 export function Footswitch({
@@ -26,7 +26,12 @@ export function Footswitch({
       aria-label={label}
       disabled={disabled}
       onClick={onToggle}
-      className="group flex flex-col items-center gap-1.5 outline-none disabled:cursor-not-allowed disabled:opacity-50"
+      className={cn(
+        "group flex flex-col items-center gap-1.5 outline-none transition-opacity",
+        disabled && "cursor-not-allowed",
+        // só leitura mantém o switch legível; quem apaga é o estado desligado
+        disabled && !active && "opacity-60",
+      )}
     >
       <span className="relative block size-12">
         {/* porca sextavada / base fixa no chassis */}

@@ -13,6 +13,7 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import { Disc3, Loader2, Music, Search } from "lucide-react";
+import { LIMITS } from "@/lib/validations/limits";
 
 const EMPTY: SearchResult = { bands: [], songs: [] };
 
@@ -85,7 +86,7 @@ export function GlobalSearch() {
         <Command shouldFilter={false}>
           <CommandInput
             value={query}
-            onValueChange={setQuery}
+            onValueChange={(value) => setQuery(value.slice(0, LIMITS.searchQueryMax))}
             placeholder="Banda ou música…"
           />
           <CommandList>

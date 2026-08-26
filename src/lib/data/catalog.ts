@@ -1,5 +1,6 @@
 import "server-only";
 import { createClient } from "@/lib/supabase/server";
+import { LIMITS } from "@/lib/validations/limits";
 import type { PedalModelConfig, PresetSettings } from "@/types/pedal";
 
 /** Leituras públicas do catálogo — funcionam com ou sem sessão (RLS libera SELECT). */
@@ -11,8 +12,9 @@ export async function listBands(query?: string) {
     .select("id, name, slug, cover_url, songs(count)")
     .order("name");
 
-  if (query?.trim()) {
-    request = request.ilike("name", `%${query.trim()}%`);
+  const term = query?.trim().slice(0, LIMITS.searchQueryMax);
+  if (term) {
+    request = request.ilike("name", `%${term}%`);
   }
 
   const { data, error } = await request;
@@ -215,38 +217,55 @@ export async function getUploadById(
   };
 }
 
-/** Destaques da home: uploads mais aprovados, com música e banda. */
-export async function listTopUploads(limit = 6) {
+export type TopUpload = {
+  id: string;
+  title: string;
+  views: number;
+  approvals: number;
+  author: { username: string } | null;
+  song: {
+    title: string;
+    slug: string;
+    band: { name: string; slug: string } | null;
+  } | null;
+};
+
+/**
+ * Destaques da home: os envios mais vistos, com música, banda e aprovações.
+ * As aprovações vêm da view `upload_scores`, que só lista quem já recebeu voto —
+ * por isso o join é feito aqui, com 0 como padrão.
+ */
+export async function listMostViewedUploads(limit = 5): Promise<TopUpload[]> {
   const supabase = await createClient();
 
-  const { data: scores, error } = await supabase
-    .from("upload_scores")
-    .select("upload_id, score, approvals")
-    .order("score", { ascending: false })
-    .limit(limit);
-
-  if (error) throw error;
-  if (!scores?.length) return [];
-
-  const { data, error: uploadsError } = await supabase
+  const { data, error } = await supabase
     .from("uploads")
     .select(
-      `id, title, views, created_at,
+      `id, title, views,
        author:profiles ( username ),
        song:songs ( title, slug, band:bands ( name, slug ) )`,
     )
-    .in("id", scores.map((s) => s.upload_id));
+    .order("views", { ascending: false })
+    .order("created_at", { ascending: true })
+    .limit(limit);
 
-  if (uploadsError) throw uploadsError;
+  if (error) throw error;
+  const uploads = data ?? [];
+  if (uploads.length === 0) return [];
 
-  const scoreById = new Map(scores.map((s) => [s.upload_id, s]));
-  return (data ?? [])
-    .map((upload) => ({
-      ...upload,
-      score: scoreById.get(upload.id)?.score ?? 0,
-      approvals: scoreById.get(upload.id)?.approvals ?? 0,
-    }))
-    .sort((a, b) => b.score - a.score);
+  const { data: scores } = await supabase
+    .from("upload_scores")
+    .select("upload_id, approvals")
+    .in("upload_id", uploads.map((u) => u.id));
+
+  const approvalsById = new Map(
+    (scores ?? []).map((s) => [s.upload_id, s.approvals ?? 0]),
+  );
+
+  return uploads.map((upload) => ({
+    ...upload,
+    approvals: approvalsById.get(upload.id) ?? 0,
+  }));
 }
 
 /** Envios de um usuário, do mais aprovado ao menos aprovado (perfil). */
@@ -306,7 +325,7 @@ export async function searchCatalogRanked(
   query: string,
   limit = 20,
 ): Promise<CatalogHit[]> {
-  const term = query.trim();
+  const term = query.trim().slice(0, LIMITS.searchQueryMax);
   if (term.length < 2) return [];
 
   const supabase = await createClient();

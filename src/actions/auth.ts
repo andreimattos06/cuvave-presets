@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { translateAuthError } from "@/lib/supabase/errors";
 import { getOrigin, safeNextPath } from "@/lib/url";
 import type { ActionState } from "@/lib/action-state";
+import { consumeRateLimit, rateLimitMessage } from "@/lib/rate-limit";
 import {
   forgotPasswordSchema,
   loginSchema,
@@ -24,6 +25,21 @@ export async function login(
       message: "Verifique os campos destacados.",
       fieldErrors: parsed.error.flatten().fieldErrors,
     };
+  }
+
+  // Dois contadores: um segura o martelo vindo de um IP, o outro impede que
+  // uma botnet distribuída fique tentando senhas numa conta específica.
+  for (const scope of [undefined, `email:${parsed.data.email.toLowerCase()}`]) {
+    const verdict = await consumeRateLimit("login", scope);
+    if (!verdict.ok) {
+      return {
+        status: "error",
+        message: rateLimitMessage(
+          verdict.retryAfter,
+          "Muitas tentativas de login.",
+        ),
+      };
+    }
   }
 
   const supabase = await createClient();
@@ -50,6 +66,17 @@ export async function signup(
     };
   }
 
+  const verdict = await consumeRateLimit("signup");
+  if (!verdict.ok) {
+    return {
+      status: "error",
+      message: rateLimitMessage(
+        verdict.retryAfter,
+        "Muitas contas criadas a partir daqui.",
+      ),
+    };
+  }
+
   const origin = await getOrigin();
   const supabase = await createClient();
   const { data, error } = await supabase.auth.signUp({
@@ -72,8 +99,7 @@ export async function signup(
 
   return {
     status: "success",
-    message:
-      "Quase lá! Enviamos um link de confirmação para o seu e-mail — confirme para poder entrar.",
+    message: `Quase lá! Enviamos um link de confirmação para ${parsed.data.email}. Abra o e-mail e clique em "Confirmar meu e-mail" para ativar a conta — se não aparecer em alguns minutos, olhe no spam.`,
   };
 }
 
@@ -97,11 +123,20 @@ export async function forgotPassword(
     };
   }
 
-  const origin = await getOrigin();
-  const supabase = await createClient();
-  await supabase.auth.resetPasswordForEmail(parsed.data.email, {
-    redirectTo: `${origin}/auth/callback?next=/redefinir-senha`,
-  });
+  // A resposta é sempre a mesma, mesmo bloqueado: dizer "muitas tentativas"
+  // só para e-mails cadastrados entregaria quem tem conta.
+  const [byIp, byEmail] = await Promise.all([
+    consumeRateLimit("passwordRecovery"),
+    consumeRateLimit("passwordRecovery", `email:${parsed.data.email.toLowerCase()}`),
+  ]);
+
+  if (byIp.ok && byEmail.ok) {
+    const origin = await getOrigin();
+    const supabase = await createClient();
+    await supabase.auth.resetPasswordForEmail(parsed.data.email, {
+      redirectTo: `${origin}/auth/callback?next=/redefinir-senha`,
+    });
+  }
 
   // Mensagem genérica de propósito: evita confirmar quais e-mails têm conta.
   return {
@@ -122,6 +157,11 @@ export async function resetPassword(
       message: "Verifique os campos destacados.",
       fieldErrors: parsed.error.flatten().fieldErrors,
     };
+  }
+
+  const verdict = await consumeRateLimit("passwordUpdate");
+  if (!verdict.ok) {
+    return { status: "error", message: rateLimitMessage(verdict.retryAfter) };
   }
 
   const supabase = await createClient();

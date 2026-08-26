@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { FieldError } from "@/components/site/auth-card";
 import { Loader2, Plus } from "lucide-react";
+import { LIMITS } from "@/lib/validations/limits";
 
 export function NewSongForm({ bandId }: { bandId: string }) {
   const [state, formAction, pending] = useActionState(createSong, idleState);
@@ -33,6 +34,7 @@ export function NewSongForm({ bandId }: { bandId: string }) {
         <Input
           id="song-title"
           name="title"
+          maxLength={LIMITS.songTitleMax}
           placeholder="Ex.: Tempo Perdido"
           required
           className="flex-1"

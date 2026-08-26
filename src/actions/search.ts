@@ -1,6 +1,8 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { consumeRateLimit } from "@/lib/rate-limit";
+import { LIMITS } from "@/lib/validations/limits";
 
 export type SearchResult = {
   bands: { id: string; name: string; slug: string }[];
@@ -17,8 +19,13 @@ export type SearchResult = {
  * relevância pela função search_catalog. Aberta a visitantes.
  */
 export async function searchCatalog(query: string): Promise<SearchResult> {
-  const term = query.trim();
+  // O termo entra numa consulta trigram: cortar o tamanho evita transformar a
+  // caixa de busca em gerador de varredura cara.
+  const term = String(query ?? "").trim().slice(0, LIMITS.searchQueryMax);
   if (term.length < 2) return { bands: [], songs: [] };
+
+  const verdict = await consumeRateLimit("search");
+  if (!verdict.ok) return { bands: [], songs: [] };
 
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("search_catalog", {

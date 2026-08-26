@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import { PedalBoard } from "@/components/pedalboard/pedal-board";
+import { DeviceTransfer } from "@/components/mvave/device-transfer";
 import { registerUploadView } from "@/actions/uploads";
 import type { SongUpload } from "@/lib/data/catalog";
 import { Guitar } from "lucide-react";
@@ -89,13 +90,22 @@ export function UploadViewer({ upload }: { upload: SongUpload }) {
           </div>
 
           {preset && (
-            <PedalBoard
-              modelName={track.pedalModel.name}
-              config={track.pedalModel.config}
-              presetName={preset.name}
-              value={preset.settings}
-              readOnly
-            />
+            <>
+              <div className="flex justify-end">
+                <DeviceTransfer
+                  model={track.pedalModel}
+                  presetName={preset.name}
+                  settings={preset.settings}
+                />
+              </div>
+              <PedalBoard
+                modelName={track.pedalModel.name}
+                config={track.pedalModel.config}
+                presetName={preset.name}
+                value={preset.settings}
+                readOnly
+              />
+            </>
           )}
         </>
       ) : (

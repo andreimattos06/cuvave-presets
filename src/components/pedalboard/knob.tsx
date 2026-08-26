@@ -3,10 +3,10 @@
 import { useCallback, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
-import type { KnobParam } from "@/types/pedal";
+import { formatParamValue, isSteppedParam, type KnobParam } from "@/types/pedal";
 
 /**
- * Knob cromado serrilhado, no formato das Cuvave reais: corpo metálico que gira,
+ * Knob cromado serrilhado, no formato das M-Vave reais: corpo metálico que gira,
  * saia escura com escala de marcações e traço indicador no topo.
  * Interação: arraste vertical, scroll, setas do teclado; duplo clique reseta.
  */
@@ -47,6 +47,7 @@ export function Knob({
   colorVar = "var(--neon-cyan)",
   size = "md",
   disabled = false,
+  off = false,
   onFocusValue,
 }: {
   param: KnobParam;
@@ -55,12 +56,18 @@ export function Knob({
   colorVar?: string;
   size?: keyof typeof SIZE_CLASSES;
   disabled?: boolean;
+  /** Bloco desligado: apaga o knob visualmente. Só leitura não apaga nada. */
+  off?: boolean;
   onFocusValue?: (value: number | undefined) => void;
 }) {
   const dragState = useRef<{ startY: number; startValue: number } | null>(null);
   const [dragging, setDragging] = useState(false);
 
   const { min, max, step } = param;
+  // Chaves (IR Cab, Type) andam de posição em posição; a escala mostra uma
+  // marca por posição em vez das 11 divisões do knob contínuo.
+  const stepped = isSteppedParam(param);
+  const ticks = stepped ? Math.round((max - min) / step) + 1 : TICKS;
   const pct = clamp((value - min) / (max - min), 0, 1);
   const deg = START_DEG + pct * SWEEP_DEG;
 
@@ -78,10 +85,10 @@ export function Knob({
       if (!dragState.current) return;
       const deltaY = dragState.current.startY - e.clientY;
       // Shift = ajuste fino, como num controle real de estúdio.
-      const sensitivity = e.shiftKey ? 420 : 140;
+      const sensitivity = e.shiftKey && !stepped ? 420 : 140;
       commit(dragState.current.startValue + (deltaY / sensitivity) * (max - min));
     },
-    [max, min, commit],
+    [max, min, stepped, commit],
   );
 
   const handleKeyDown = useCallback(
@@ -117,6 +124,7 @@ export function Knob({
         aria-valuemin={min}
         aria-valuemax={max}
         aria-valuenow={value}
+        aria-valuetext={formatParamValue(param, value)}
         aria-orientation="vertical"
         aria-disabled={disabled}
         onPointerDown={(e) => {
@@ -147,9 +155,10 @@ export function Knob({
         onDoubleClick={() => !disabled && commit(param.default)}
         className={cn(
           SIZE_CLASSES[size],
-          "relative touch-none cursor-ns-resize rounded-full outline-none",
+          "relative touch-none rounded-full outline-none transition-opacity",
           "focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent",
-          disabled && "cursor-not-allowed opacity-50",
+          off ? "cursor-not-allowed" : disabled ? "cursor-default" : "cursor-ns-resize",
+          off && "opacity-75",
         )}
       >
         {/* escala serigrafada ao redor do knob */}
@@ -158,10 +167,11 @@ export function Knob({
           viewBox="0 0 100 100"
           className="absolute -inset-[18%] overflow-visible"
         >
-          {Array.from({ length: TICKS }, (_, i) => {
-            const a = ((START_DEG + (i / (TICKS - 1)) * SWEEP_DEG - 90) * Math.PI) / 180;
+          {Array.from({ length: ticks }, (_, i) => {
+            const a = ((START_DEG + (i / (ticks - 1)) * SWEEP_DEG - 90) * Math.PI) / 180;
             const inner = 46;
-            const outer = i % 5 === 0 ? 52 : 50;
+            const major = stepped || i % 5 === 0;
+            const outer = major ? 52 : 50;
             return (
               <line
                 key={i}
@@ -170,9 +180,9 @@ export function Knob({
                 x2={svgCoord(50 + Math.cos(a) * outer)}
                 y2={svgCoord(50 + Math.sin(a) * outer)}
                 stroke="currentColor"
-                strokeWidth={i % 5 === 0 ? 2.4 : 1.4}
+                strokeWidth={major ? 2.4 : 1.4}
                 strokeLinecap="round"
-                className="text-white/25"
+                className={off ? "text-white/15" : "text-white/30"}
               />
             );
           })}
@@ -187,7 +197,7 @@ export function Knob({
             strokeLinecap="round"
             strokeDasharray={`${svgCoord((pct * SWEEP_DEG * Math.PI * 43) / 180)} 1000`}
             transform="rotate(135 50 50)"
-            opacity={disabled ? 0.25 : 0.9}
+            opacity={off ? 0.5 : 0.95}
           />
         </svg>
 
@@ -207,7 +217,12 @@ export function Knob({
           }}
           animate={{ rotate: deg }}
           transition={
-            dragging ? { duration: 0 } : { type: "spring", stiffness: 340, damping: 28 }
+            dragging && !stepped
+              ? { duration: 0 }
+              : stepped
+                // trava seca entre posições, como a chave do aparelho
+                ? { type: "spring", stiffness: 700, damping: 30 }
+                : { type: "spring", stiffness: 340, damping: 28 }
           }
         >
           {/* topo abaulado do knob + brilho especular */}
@@ -225,7 +240,12 @@ export function Knob({
         </motion.div>
       </div>
 
-      <span className="max-w-[4.5rem] text-center text-[9px] font-semibold uppercase leading-tight tracking-wider text-white/70">
+      <span
+        className={cn(
+          "max-w-[4.5rem] text-center text-[9px] font-semibold uppercase leading-tight tracking-wider",
+          off ? "text-white/45" : "text-white/80",
+        )}
+      >
         {param.label}
       </span>
     </div>

@@ -1,4 +1,4 @@
--- Cuvave Music Presets — schema inicial
+-- M-Vave Music Presets — schema inicial
 -- Convenções: RLS habilitado em toda tabela pública; leitura é sempre pública,
 -- escrita exige auth.uid() e, quando aplicável, posse do recurso pai.
 

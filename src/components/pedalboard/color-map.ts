@@ -39,6 +39,27 @@ export const NEON_COLOR_CLASSES = {
     glow: "shadow-[0_0_22px_-4px_var(--neon-green)]",
     cssVar: "var(--neon-green)",
   },
+  "neon-red": {
+    text: "text-neon-red",
+    bg: "bg-neon-red",
+    border: "border-neon-red",
+    glow: "shadow-[0_0_22px_-4px_var(--neon-red)]",
+    cssVar: "var(--neon-red)",
+  },
+  "neon-blue": {
+    text: "text-neon-blue",
+    bg: "bg-neon-blue",
+    border: "border-neon-blue",
+    glow: "shadow-[0_0_22px_-4px_var(--neon-blue)]",
+    cssVar: "var(--neon-blue)",
+  },
+  "neon-emerald": {
+    text: "text-neon-emerald",
+    bg: "bg-neon-emerald",
+    border: "border-neon-emerald",
+    glow: "shadow-[0_0_22px_-4px_var(--neon-emerald)]",
+    cssVar: "var(--neon-emerald)",
+  },
   "neon-white": {
     text: "text-neon-white",
     bg: "bg-neon-white",

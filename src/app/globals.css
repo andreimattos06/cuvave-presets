@@ -15,6 +15,9 @@
   --color-neon-amber: var(--neon-amber);
   --color-neon-rose: var(--neon-rose);
   --color-neon-green: var(--neon-green);
+  --color-neon-red: var(--neon-red);
+  --color-neon-blue: var(--neon-blue);
+  --color-neon-emerald: var(--neon-emerald);
   --color-neon-white: var(--neon-white);
   --color-surface: var(--surface);
   --color-surface-foreground: var(--surface-foreground);
@@ -96,6 +99,11 @@
   --neon-amber: oklch(0.79 0.17 80);
   --neon-rose: oklch(0.66 0.21 15);
   --neon-green: oklch(0.75 0.18 145);
+  --neon-red: oklch(0.62 0.24 27);
+  /* Tons fechados para painéis claros (o chassi turquesa do Tank-G apaga
+     ciano e verde claros). */
+  --neon-blue: oklch(0.52 0.19 245);
+  --neon-emerald: oklch(0.54 0.17 152);
   --neon-white: oklch(0.98 0 0);
   --surface: oklch(0.19 0.018 290);
   --surface-foreground: oklch(0.97 0.01 290);

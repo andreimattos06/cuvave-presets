@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { login } from "@/actions/auth";
 import { idleState } from "@/lib/action-state";
+import { LIMITS } from "@/lib/validations/limits";
 import { FieldError } from "@/components/site/auth-card";
 import { GoogleButton } from "@/components/site/google-button";
 import { Separator } from "@/components/ui/separator";
@@ -32,6 +33,7 @@ export function LoginForm({ next = "/" }: { next?: string }) {
             id="email"
             name="email"
             type="email"
+            maxLength={LIMITS.emailMax}
             autoComplete="email"
             required
             className="mt-1.5"
@@ -53,6 +55,7 @@ export function LoginForm({ next = "/" }: { next?: string }) {
             name="password"
             type="password"
             autoComplete="current-password"
+            maxLength={LIMITS.passwordMax}
             required
             className="mt-1.5"
           />

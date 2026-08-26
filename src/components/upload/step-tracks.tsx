@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import type { PedalModel } from "@/types/pedal";
 import { Guitar, Plus, Trash2 } from "lucide-react";
+import { LIMITS } from "@/lib/validations/limits";
 
 const SUGGESTIONS = [
   "Guitarra principal",
@@ -54,7 +55,7 @@ export function StepTracks({ models }: { models: PedalModel[] }) {
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           placeholder="Ex.: versão do álbum, tom de Si"
-          maxLength={80}
+          maxLength={LIMITS.uploadTitleMax}
           className="mt-2"
         />
       </div>
@@ -77,6 +78,7 @@ export function StepTracks({ models }: { models: PedalModel[] }) {
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
             placeholder="Ex.: guitarra principal"
+            maxLength={LIMITS.trackNameMax}
             className="flex-1"
             disabled={full}
           />
@@ -120,6 +122,7 @@ export function StepTracks({ models }: { models: PedalModel[] }) {
                 value={track.name}
                 onChange={(e) => renameTrack(track.localId, e.target.value)}
                 aria-label="Nome do instrumento"
+                maxLength={LIMITS.trackNameMax}
                 className="min-w-40 flex-1 border-none bg-transparent px-0 focus-visible:ring-0"
               />
               <select
@@ -160,7 +163,7 @@ export function StepTracks({ models }: { models: PedalModel[] }) {
           value={note}
           onChange={(e) => setNote(e.target.value)}
           placeholder="Ex.: baseado na versão ao vivo de 1997; o solo entra no 2º refrão."
-          maxLength={400}
+          maxLength={LIMITS.uploadNoteMax}
           className="mt-1.5"
         />
       </div>

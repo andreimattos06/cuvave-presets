@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { Check, Loader2, Plus, Search } from "lucide-react";
+import { LIMITS } from "@/lib/validations/limits";
 
 type Band = { id: string; name: string; slug: string };
 type Song = { id: string; title: string };
@@ -125,6 +126,7 @@ export function StepSong({ bands: initialBands }: { bands: Band[] }) {
             id="band-search"
             value={bandQuery}
             onChange={(e) => setBandQuery(e.target.value)}
+            maxLength={LIMITS.bandNameMax}
             placeholder="Buscar ou cadastrar banda…"
             className="pl-9"
           />
@@ -181,6 +183,7 @@ export function StepSong({ bands: initialBands }: { bands: Band[] }) {
             id="song-search"
             value={songQuery}
             onChange={(e) => setSongQuery(e.target.value)}
+            maxLength={LIMITS.songTitleMax}
             placeholder={
               bandId ? "Buscar ou cadastrar música…" : "Escolha a banda primeiro"
             }

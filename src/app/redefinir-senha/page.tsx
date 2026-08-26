@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { AuthCard } from "@/components/site/auth-card";
 import { ResetPasswordForm } from "@/components/site/reset-password-form";
 
-export const metadata: Metadata = { title: "Redefinir senha — Cuvave Presets" };
+export const metadata: Metadata = { title: "Redefinir senha — M-Vave Presets" };
 
 export default function ResetPasswordPage() {
   return (

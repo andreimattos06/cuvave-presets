@@ -3,7 +3,7 @@ import { PedalBoardDemo } from "@/components/pedalboard/pedal-board-demo";
 import { DEMO_MODELS } from "@/components/pedalboard/demo-models";
 
 export const metadata: Metadata = {
-  title: "Pedaleira virtual · Cuvave Presets",
+  title: "Pedaleira virtual · M-Vave Presets",
 };
 
 export default function PedaleiraPage() {

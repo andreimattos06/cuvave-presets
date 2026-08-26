@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { FieldError } from "@/components/site/auth-card";
 import { Loader2, Plus } from "lucide-react";
+import { LIMITS } from "@/lib/validations/limits";
 
 export function NewBandForm() {
   const [state, formAction, pending] = useActionState(createBand, idleState);
@@ -32,6 +33,7 @@ export function NewBandForm() {
         <Input
           id="band-name"
           name="name"
+          maxLength={LIMITS.bandNameMax}
           placeholder="Ex.: Legião Urbana"
           required
           className="flex-1"

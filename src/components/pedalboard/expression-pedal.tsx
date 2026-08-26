@@ -3,7 +3,7 @@
 import { useCallback, useRef } from "react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
-import type { KnobParam } from "@/types/pedal";
+import { formatParamValue, type KnobParam } from "@/types/pedal";
 
 /** Pedal de expressão: arraste vertical inclina a chapa (0 = talão, max = ponta). */
 const MAX_TILT_DEG = 22;
@@ -68,7 +68,7 @@ export function ExpressionPedal({
         className={cn(
           "relative h-16 w-32 touch-none cursor-ns-resize rounded-md outline-none",
           "focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
-          disabled && "cursor-not-allowed opacity-40",
+          disabled && "cursor-default",
         )}
         style={{ perspective: "320px" }}
       >
@@ -87,7 +87,7 @@ export function ExpressionPedal({
           {param.label}
         </p>
         <p className="font-mono text-lg tabular-nums text-foreground">
-          {value.toFixed(1)}
+          {formatParamValue(param, value)}
         </p>
       </div>
     </div>

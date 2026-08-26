@@ -11,7 +11,7 @@ export async function generateMetadata({
 }: PageProps<"/bandas/[slug]">): Promise<Metadata> {
   const band = await getBandBySlug((await params).slug);
   return {
-    title: band ? `${band.name} — Cuvave Presets` : "Banda não encontrada",
+    title: band ? `${band.name} — M-Vave Presets` : "Banda não encontrada",
   };
 }
 

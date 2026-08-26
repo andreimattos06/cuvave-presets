@@ -7,7 +7,7 @@ export function Footer() {
       <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 text-sm text-muted-foreground">
         <p className="flex items-center gap-2">
           <Guitar className="size-4 text-primary" />
-          Cuvave Presets — feito por guitarristas, para guitarristas.
+          M-Vave Presets — feito por guitarristas, para guitarristas.
         </p>
         <nav className="flex flex-wrap items-center gap-4">
           <Link href="/bandas" className="transition-colors hover:text-foreground">
@@ -22,7 +22,7 @@ export function Footer() {
         </nav>
       </div>
       <p className="mx-auto mt-4 max-w-6xl text-xs text-muted-foreground/70">
-        Projeto independente da comunidade. Cuvave é marca de seus respectivos
+        Projeto independente da comunidade. M-Vave é marca de seus respectivos
         donos.
       </p>
     </footer>

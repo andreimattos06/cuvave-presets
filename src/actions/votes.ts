@@ -3,6 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser } from "@/lib/auth";
+import { consumeRateLimit, rateLimitMessage } from "@/lib/rate-limit";
+import { z } from "zod";
 
 export type VoteResult = { ok: boolean; message?: string };
 
@@ -19,6 +21,20 @@ export async function voteUpload(
   const user = await getCurrentUser();
   if (!user) {
     return { ok: false, message: "Entre na sua conta para avaliar envios." };
+  }
+
+  // Os argumentos vêm de um componente cliente: nada garante que sejam o que a
+  // assinatura promete.
+  if (!z.string().uuid().safeParse(uploadId).success || (value !== 1 && value !== -1)) {
+    return { ok: false, message: "Envio inválido." };
+  }
+
+  const verdict = await consumeRateLimit("vote", `user:${user.id}`);
+  if (!verdict.ok) {
+    return {
+      ok: false,
+      message: rateLimitMessage(verdict.retryAfter, "Muitos votos seguidos."),
+    };
   }
 
   const supabase = await createClient();

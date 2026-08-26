@@ -22,9 +22,9 @@ const spaceGrotesk = Space_Grotesk({
 });
 
 export const metadata: Metadata = {
-  title: "Cuvave Music Presets",
+  title: "M-Vave Music Presets",
   description:
-    "Descubra e compartilhe presets de pedaleiras Cuvave por música, faixa e trecho — com uma réplica virtual interativa do pedal.",
+    "Descubra e compartilhe presets de pedaleiras M-Vave por música, faixa e trecho — com uma réplica virtual interativa do pedal.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

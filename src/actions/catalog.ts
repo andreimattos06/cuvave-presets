@@ -6,6 +6,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { slugify } from "@/lib/slug";
 import { bandSchema, songSchema } from "@/lib/validations/catalog";
 import type { ActionState } from "@/lib/action-state";
+import { consumeRateLimit, rateLimitMessage } from "@/lib/rate-limit";
 
 /**
  * Cadastro colaborativo do catálogo: qualquer usuário logado pode criar uma
@@ -29,6 +30,14 @@ export async function createBand(
       status: "error",
       message: "Verifique os campos destacados.",
       fieldErrors: parsed.error.flatten().fieldErrors,
+    };
+  }
+
+  const limited = await consumeRateLimit("catalogWrite", `user:${user.id}`);
+  if (!limited.ok) {
+    return {
+      status: "error",
+      message: rateLimitMessage(limited.retryAfter, "Muitos cadastros seguidos."),
     };
   }
 
@@ -81,6 +90,14 @@ export async function createSong(
       status: "error",
       message: "Verifique os campos destacados.",
       fieldErrors: parsed.error.flatten().fieldErrors,
+    };
+  }
+
+  const limited = await consumeRateLimit("catalogWrite", `user:${user.id}`);
+  if (!limited.ok) {
+    return {
+      status: "error",
+      message: rateLimitMessage(limited.retryAfter, "Muitos cadastros seguidos."),
     };
   }
 

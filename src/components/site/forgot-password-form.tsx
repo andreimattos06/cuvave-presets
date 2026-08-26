@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { forgotPassword } from "@/actions/auth";
 import { idleState } from "@/lib/action-state";
+import { LIMITS } from "@/lib/validations/limits";
 import { FieldError } from "@/components/site/auth-card";
 import { Loader2, MailCheck } from "lucide-react";
 
@@ -32,6 +33,7 @@ export function ForgotPasswordForm() {
           id="email"
           name="email"
           type="email"
+          maxLength={LIMITS.emailMax}
           autoComplete="email"
           required
           className="mt-1.5"

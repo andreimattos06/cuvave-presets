@@ -1,4 +1,4 @@
--- Catálogo inicial de pedaleiras Cuvave. Estrutura data-driven consumida por
+-- Catálogo inicial de pedaleiras M-Vave. Estrutura data-driven consumida por
 -- <PedalBoard>; os painéis reproduzem o painel dos aparelhos reais.
 -- Mantenha em sincronia com src/components/pedalboard/demo-models.ts.
 -- Rode manualmente (SQL editor do Supabase ou `supabase db execute`) após as
@@ -7,10 +7,10 @@
 
 insert into public.pedal_models (name, slug, config) values
 (
-  'Cuvave Baby',
+  'M-Vave Baby',
   'baby',
   $json${
-    "brand": "CUVAVE",
+    "brand": "M-VAVE",
     "chassisColor": "#17171a",
     "chassisFinish": "matte",
     "screenStyle": "lcd-mono",
@@ -49,60 +49,60 @@ insert into public.pedal_models (name, slug, config) values
   }$json$::jsonb
 ),
 (
-  'Cuvave Tank-G',
+  'M-Vave Tank-G',
   'tank-g',
   $json${
-    "brand": "CUVAVE",
+    "brand": "M-VAVE",
     "chassisColor": "#4fbfae",
     "chassisFinish": "metallic",
     "screenStyle": "lcd-mono",
     "hasSevenSegment": true,
     "hasExpressionPedal": false,
-    "globalLedColor": "neon-cyan",
+    "globalLedColor": "neon-white",
     "globalKnobs": [
       { "id": "master", "label": "Master", "min": 0, "max": 10, "step": 0.1, "default": 7 }
     ],
     "effectBlocks": [
       { "id": "cab", "label": "IR Cab", "color": "neon-amber", "params": [
-        { "id": "ir", "label": "Cab", "min": 0, "max": 10, "step": 0.1, "default": 5 }
+        { "id": "ir", "label": "IR Cab", "min": 1, "max": 9, "step": 1, "default": 1 }
       ]},
       { "id": "reverb", "label": "Reverb", "color": "neon-violet", "params": [
-        { "id": "mix", "label": "Rev Mix", "min": 0, "max": 10, "step": 0.1, "default": 3 },
-        { "id": "decay", "label": "Decay", "min": 0, "max": 10, "step": 0.1, "default": 4 }
+        { "id": "mix", "label": "Rvb Mix", "min": 0, "max": 10, "step": 0.1, "default": 3 },
+        { "id": "decay", "label": "Rvb Decay", "min": 0, "max": 10, "step": 0.1, "default": 4 }
       ]},
-      { "id": "delay", "label": "Delay", "color": "neon-cyan", "params": [
-        { "id": "time", "label": "Time", "min": 0, "max": 10, "step": 0.1, "default": 4 },
-        { "id": "fb", "label": "FB", "min": 0, "max": 10, "step": 0.1, "default": 3 },
-        { "id": "mix", "label": "Mix", "min": 0, "max": 10, "step": 0.1, "default": 3 }
+      { "id": "delay", "label": "Delay", "color": "neon-blue", "params": [
+        { "id": "time", "label": "Dly Time", "min": 0, "max": 10, "step": 0.1, "default": 4 },
+        { "id": "mix", "label": "Dly Mix", "min": 0, "max": 10, "step": 0.1, "default": 3 }
       ]},
-      { "id": "mod", "label": "Mod", "color": "neon-green", "params": [
-        { "id": "rate", "label": "Rate", "min": 0, "max": 10, "step": 0.1, "default": 3 },
-        { "id": "depth", "label": "Depth", "min": 0, "max": 10, "step": 0.1, "default": 4 }
+      { "id": "mod", "label": "Mod", "color": "neon-emerald", "params": [
+        { "id": "speed", "label": "Mod Speed", "min": 0, "max": 10, "step": 0.1, "default": 3 },
+        { "id": "fx", "label": "Mod FX", "min": 0, "max": 10, "step": 0.1, "default": 4 }
       ]},
-      { "id": "amp", "label": "Amp", "color": "neon-rose", "params": [
-        { "id": "gain", "label": "Gain", "min": 0, "max": 10, "step": 0.1, "default": 6 },
+      { "id": "amp", "label": "Amp", "color": "neon-red", "params": [
+        { "id": "volume", "label": "Volume", "min": 0, "max": 10, "step": 0.1, "default": 6 },
         { "id": "bass", "label": "Bass", "min": 0, "max": 10, "step": 0.1, "default": 5 },
         { "id": "middle", "label": "Middle", "min": 0, "max": 10, "step": 0.1, "default": 5 },
         { "id": "treble", "label": "Treble", "min": 0, "max": 10, "step": 0.1, "default": 5 },
-        { "id": "volume", "label": "Volume", "min": 0, "max": 10, "step": 0.1, "default": 6 }
+        { "id": "gain", "label": "Gain", "min": 0, "max": 10, "step": 0.1, "default": 6 },
+        { "id": "type", "label": "Type", "min": 1, "max": 9, "step": 1, "default": 1 }
       ]},
       { "id": "gate", "label": "Noise Gate", "color": "neon-white", "params": [
-        { "id": "depth", "label": "Depth", "min": 0, "max": 10, "step": 0.1, "default": 3 }
+        { "id": "depth", "label": "Gate", "min": 0, "max": 10, "step": 0.1, "default": 3 }
       ]}
     ],
     "footswitches": [
-      { "id": "fs-a", "label": "A", "togglesBlockId": "reverb", "arcLabel": "A / Reverb" },
-      { "id": "fs-b", "label": "B", "togglesBlockId": "delay", "arcLabel": "B / Delay" },
-      { "id": "fs-c", "label": "C", "togglesBlockId": "mod", "arcLabel": "C / Mod" },
-      { "id": "fs-d", "label": "D", "togglesBlockId": "amp", "arcLabel": "D / Amp" }
+      { "id": "fs-a", "label": "A", "togglesBlockId": "reverb", "arcLabel": "Reverb" },
+      { "id": "fs-b", "label": "B", "togglesBlockId": "delay", "arcLabel": "Delay" },
+      { "id": "fs-c", "label": "C", "togglesBlockId": "mod", "arcLabel": "Mod" },
+      { "id": "fs-d", "label": "D", "togglesBlockId": "amp", "arcLabel": "Amp" }
     ]
   }$json$::jsonb
 ),
 (
-  'Cuvave Papa Blues',
+  'M-Vave Papa Blues',
   'papa-blues',
   $json${
-    "brand": "CUVAVE",
+    "brand": "M-VAVE",
     "chassisColor": "#c9a227",
     "chassisFinish": "metallic",
     "screenStyle": "lcd-mono",

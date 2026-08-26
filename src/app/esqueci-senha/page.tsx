@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { AuthCard } from "@/components/site/auth-card";
 import { ForgotPasswordForm } from "@/components/site/forgot-password-form";
 
-export const metadata: Metadata = { title: "Recuperar senha — Cuvave Presets" };
+export const metadata: Metadata = { title: "Recuperar senha — M-Vave Presets" };
 
 export default function ForgotPasswordPage() {
   return (

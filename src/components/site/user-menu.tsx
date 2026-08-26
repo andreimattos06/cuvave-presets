@@ -4,6 +4,7 @@ import Link from "next/link";
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -33,26 +34,30 @@ export function UserMenu({
         </Avatar>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
-        <DropdownMenuLabel className="truncate">
-          @{username}
-        </DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem
-          render={
-            <Link href="/perfil">
-              <UserRound className="size-4" />
-              Meu perfil
-            </Link>
-          }
-        />
-        <DropdownMenuItem
-          render={
-            <Link href="/enviar">
-              <UploadCloud className="size-4" />
-              Enviar preset
-            </Link>
-          }
-        />
+        {/* O Base UI exige que o rótulo esteja dentro do grupo que ele nomeia:
+            solto, o GroupLabel quebra o menu inteiro ao abrir. */}
+        <DropdownMenuGroup>
+          <DropdownMenuLabel className="truncate">
+            @{username}
+          </DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem
+            render={
+              <Link href="/perfil">
+                <UserRound className="size-4" />
+                Meu perfil
+              </Link>
+            }
+          />
+          <DropdownMenuItem
+            render={
+              <Link href="/enviar">
+                <UploadCloud className="size-4" />
+                Enviar preset
+              </Link>
+            }
+          />
+        </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuItem variant="destructive" onClick={() => logout()}>
           <LogOut className="size-4" />

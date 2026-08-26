@@ -2,7 +2,7 @@
 
 import { cn } from "@/lib/utils";
 
-/** LED indicador — nas Cuvave reais eles ficam logo acima de cada knob e brilham forte. */
+/** LED indicador — nas M-Vave reais eles ficam logo acima de cada knob e brilham forte. */
 export function Led({
   color,
   on,

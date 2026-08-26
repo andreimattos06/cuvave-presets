@@ -1,6 +1,7 @@
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search } from "lucide-react";
+import { LIMITS } from "@/lib/validations/limits";
 
 /** Busca via navegação (funciona sem JS e mantém o termo na URL). */
 export function SearchForm({
@@ -22,6 +23,7 @@ export function SearchForm({
           defaultValue={defaultValue}
           placeholder={placeholder}
           aria-label={placeholder}
+          maxLength={LIMITS.searchQueryMax}
           className="pl-9"
         />
       </div>

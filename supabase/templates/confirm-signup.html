@@ -1,0 +1,93 @@
+<!--
+  Supabase > Authentication > Emails > Confirm signup
+  Assunto: Confirme seu e-mail — M-Vave Presets
+
+  O link usa TokenHash + /auth/confirm (e não ConfirmationURL), porque o fluxo
+  por token_hash funciona mesmo quando o e-mail é aberto em outro navegador ou
+  no celular — o PKCE do ConfirmationURL depende de um cookie da mesma sessão.
+-->
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0;padding:0;background-color:#0b0a0f;">
+  <tr>
+    <td align="center" style="padding:32px 16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:520px;background-color:#16141c;border:1px solid #2a2733;border-radius:16px;overflow:hidden;">
+
+        <!-- faixa neon do topo -->
+        <tr>
+          <td style="height:4px;line-height:4px;font-size:0;background-color:#a855f7;background-image:linear-gradient(90deg,#a855f7,#22d3ee);">&nbsp;</td>
+        </tr>
+
+        <tr>
+          <td style="padding:32px 32px 8px 32px;">
+            <p style="margin:0;font-size:12px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#a855f7;">
+              M-Vave Presets
+            </p>
+            <h1 style="margin:14px 0 0 0;font-size:24px;line-height:1.25;font-weight:700;color:#f4f2f8;">
+              Confirme seu e-mail
+            </h1>
+          </td>
+        </tr>
+
+        <tr>
+          <td style="padding:16px 32px 0 32px;">
+            <p style="margin:0;font-size:15px;line-height:1.6;color:#c7c2d4;">
+              Recebemos um cadastro no <strong style="color:#f4f2f8;">M-Vave Presets</strong> com o e-mail
+              <strong style="color:#f4f2f8;">{{ .Email }}</strong>. Confirme que este endereço é seu para
+              ativar a conta e começar a publicar e votar em presets da comunidade.
+            </p>
+          </td>
+        </tr>
+
+        <tr>
+          <td align="center" style="padding:28px 32px 8px 32px;">
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td align="center" style="border-radius:10px;background-color:#a855f7;">
+                  <a href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=signup&next=/"
+                     style="display:inline-block;padding:14px 32px;font-size:15px;font-weight:700;color:#ffffff;text-decoration:none;border-radius:10px;">
+                    Confirmar meu e-mail
+                  </a>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+
+        <tr>
+          <td style="padding:20px 32px 0 32px;">
+            <p style="margin:0;font-size:13px;line-height:1.6;color:#8f89a0;">
+              O botão não abriu? Copie e cole este endereço no navegador:
+            </p>
+            <p style="margin:8px 0 0 0;font-size:12px;line-height:1.6;word-break:break-all;">
+              <a href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=signup&next=/" style="color:#22d3ee;text-decoration:underline;">{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=signup&next=/</a>
+            </p>
+          </td>
+        </tr>
+
+        <tr>
+          <td style="padding:24px 32px 0 32px;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#1e1b26;border:1px solid #2a2733;border-radius:10px;">
+              <tr>
+                <td style="padding:14px 16px;">
+                  <p style="margin:0;font-size:13px;line-height:1.6;color:#8f89a0;">
+                    Este link vale por 24 horas e só pode ser usado uma vez. Se você não criou essa
+                    conta, é só ignorar esta mensagem — nada será ativado.
+                  </p>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+
+        <tr>
+          <td style="padding:24px 32px 32px 32px;">
+            <p style="margin:0;padding-top:20px;border-top:1px solid #2a2733;font-size:12px;line-height:1.6;color:#6f6982;">
+              M-Vave Presets — presets da comunidade para pedaleiras M-Vave.<br />
+              Este é um e-mail automático de verificação de conta; não responda.
+            </p>
+          </td>
+        </tr>
+
+      </table>
+    </td>
+  </tr>
+</table>

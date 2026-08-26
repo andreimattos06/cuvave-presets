@@ -1,18 +1,25 @@
 import Link from "next/link";
-import { listPedalModels, listTopUploads } from "@/lib/data/catalog";
+import { listMostViewedUploads, listPedalModels } from "@/lib/data/catalog";
 import { HeroPedal } from "@/components/site/hero-pedal";
 import { DEMO_MODELS } from "@/components/pedalboard/demo-models";
 import { Button } from "@/components/ui/button";
 import { SearchForm } from "@/components/catalog/search-form";
-import { Guitar, Layers, ThumbsUp, Sparkles, Trophy } from "lucide-react";
+import { MostViewedList } from "@/components/catalog/most-viewed-list";
+import { Guitar, Layers, ThumbsUp, Sparkles, Flame } from "lucide-react";
+
+const HERO_MODEL_SLUG = "tank-g";
 
 export default async function Home() {
   // O catálogo vem do banco; sem seed aplicado, a home ainda demonstra o produto.
-  const [models, topUploads] = await Promise.all([
+  const [models, mostViewed] = await Promise.all([
     listPedalModels().catch(() => []),
-    listTopUploads(6).catch(() => []),
+    listMostViewedUploads(5).catch(() => []),
   ]);
-  const heroModel = models[0] ?? DEMO_MODELS[0];
+  // A Tank-G é a pedaleira da vitrine: painel completo, com display e 4 pedais.
+  const heroModel =
+    models.find((m) => m.slug === HERO_MODEL_SLUG) ??
+    DEMO_MODELS.find((m) => m.slug === HERO_MODEL_SLUG) ??
+    DEMO_MODELS[0];
 
   return (
     <div className="flex flex-1 flex-col">
@@ -25,7 +32,7 @@ export default async function Home() {
         <div className="relative mx-auto max-w-5xl text-center">
           <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-xs text-muted-foreground">
             <Sparkles className="size-3 text-accent" />
-            Presets de pedaleira Cuvave, feitos pela comunidade
+            Presets de pedaleira M-Vave, feitos pela comunidade
           </span>
 
           <h1 className="mt-6 font-heading text-4xl font-bold leading-tight tracking-tight sm:text-6xl">
@@ -58,6 +65,16 @@ export default async function Home() {
               placeholder="Buscar por música ou artista…"
             />
           </div>
+
+          {mostViewed.length > 0 && (
+            <div className="mx-auto mt-8 max-w-lg">
+              <h2 className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                <Flame className="size-3.5 text-accent" />
+                Presets mais vistos
+              </h2>
+              <MostViewedList uploads={mostViewed} />
+            </div>
+          )}
         </div>
 
         {/* a própria pedaleira como demonstração */}
@@ -88,38 +105,6 @@ export default async function Home() {
           />
         </div>
       </section>
-
-      {topUploads.length > 0 && (
-        <section className="border-t border-white/[0.06] px-4 py-16 sm:px-6">
-          <div className="mx-auto max-w-5xl">
-            <h2 className="flex items-center gap-2 font-heading text-2xl font-semibold">
-              <Trophy className="size-5 text-primary" />
-              Mais aprovados
-            </h2>
-            <ul className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {topUploads.map((upload) => (
-                <li key={upload.id}>
-                  <Link
-                    href={`/bandas/${upload.song?.band?.slug}/${upload.song?.slug}/${upload.id}`}
-                    className="glass block rounded-xl p-4 transition-all hover:border-primary/40 hover:glow-violet"
-                  >
-                    <p className="truncate font-medium">{upload.title}</p>
-                    <p className="mt-0.5 truncate text-xs text-muted-foreground">
-                      {upload.song?.title} · {upload.song?.band?.name} · @
-                      {upload.author?.username}
-                    </p>
-                    <p className="mt-2 inline-flex items-center gap-1 text-xs text-neon-green">
-                      <ThumbsUp className="size-3" />
-                      {upload.approvals}{" "}
-                      {upload.approvals === 1 ? "aprovação" : "aprovações"}
-                    </p>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </section>
-      )}
     </div>
   );
 }

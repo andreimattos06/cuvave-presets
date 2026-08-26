@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { Fragment, useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
 import { Knob } from "./knob";
 import { Led } from "./led";
@@ -8,15 +8,18 @@ import { Footswitch } from "./footswitch";
 import { ArcLabel } from "./arc-label";
 import { SevenSegment } from "./seven-segment";
 import { ExpressionPedal } from "./expression-pedal";
+import { FitRow } from "./fit-row";
 import { getNeonColor } from "./color-map";
 import {
   createDefaultPresetSettings,
+  formatParamValue,
   type EffectBlockConfig,
+  type KnobParam,
   type PedalModelConfig,
   type PresetSettings,
 } from "@/types/pedal";
 
-type Focus = { label: string; value: number } | null;
+type Focus = { label: string; text: string } | null;
 
 /** Parafuso de chassis — detalhe que vende o "objeto real". */
 function Screw({ className }: { className?: string }) {
@@ -59,7 +62,7 @@ export function PedalBoard({
   );
 
   const metallic = config.chassisFinish === "metallic";
-  const brand = config.brand ?? "CUVAVE";
+  const brand = config.brand ?? "M-VAVE";
   const globalLed = config.globalLedColor
     ? getNeonColor(config.globalLedColor).cssVar
     : "#f5f5f5";
@@ -111,6 +114,20 @@ export function PedalBoard({
 
   const expressionParam = config.globalKnobs.find((k) => k.id === "expression");
   const dialKnobs = config.globalKnobs.filter((k) => k.id !== "expression");
+
+  function focusOf(label: string, param: KnobParam) {
+    return (v: number | undefined) =>
+      setFocus(v === undefined ? null : { label, text: formatParamValue(param, v) });
+  }
+
+  const readoutLabel = focus ? focus.label : "blocos ativos";
+  const readoutText = focus ? focus.text : String(activeCount);
+  // No Tank-G o display de LED fica no meio da fileira de pedais, entre B e C.
+  const segment = config.hasSevenSegment ? (
+    <SevenSegment text={readoutText} label={readoutLabel} />
+  ) : null;
+  const segmentIndex = Math.floor(config.footswitches.length / 2);
+  const segmentInRow = segment !== null && config.footswitches.length > 0;
 
   return (
     <div
@@ -179,27 +196,24 @@ export function PedalBoard({
             </span>
           )}
 
-          {config.hasSevenSegment ? (
-            <SevenSegment
-              text={focus ? focus.value.toFixed(1) : String(activeCount)}
-              label={focus ? focus.label : "blocos ativos"}
-            />
+          {segmentInRow ? null : segment ? (
+            segment
           ) : (
             // Modelos sem display (Baby) ganham um readout discreto, para o
             // usuário enxergar o valor exato que está ajustando.
             <div className="min-w-[6.5rem] text-right" role="status">
               <p className="truncate text-[9px] font-semibold uppercase tracking-widest text-white/45">
-                {focus ? focus.label : "blocos ativos"}
+                {readoutLabel}
               </p>
               <p className="font-mono text-xl font-bold leading-tight tabular-nums text-white/90">
-                {focus ? focus.value.toFixed(1) : activeCount}
+                {readoutText}
               </p>
             </div>
           )}
         </div>
 
         {/* ── fileira de knobs ────────────────────────────────── */}
-        <div className="relative flex flex-wrap items-end justify-center gap-x-4 gap-y-5 sm:justify-start">
+        <FitRow className="relative" innerClassName="items-end gap-x-4">
           {dialKnobs.length > 0 && (
             <KnobGroup
               title="Master"
@@ -221,9 +235,7 @@ export function PedalBoard({
                         globalKnobs: { ...settings.globalKnobs, [knob.id]: v },
                       })
                     }
-                    onFocusValue={(v) =>
-                      setFocus(v === undefined ? null : { label: knob.label, value: v })
-                    }
+                    onFocusValue={focusOf(knob.label, knob)}
                   />
                 </div>
               ))}
@@ -249,46 +261,48 @@ export function PedalBoard({
                       value={bs.params[param.id] ?? param.default}
                       colorVar={color}
                       disabled={readOnly || !bs.enabled}
+                      off={!bs.enabled}
                       onChange={(v) => setBlockParam(block.id, param.id, v)}
-                      onFocusValue={(v) =>
-                        setFocus(
-                          v === undefined
-                            ? null
-                            : { label: `${block.label} ${param.label}`, value: v },
-                        )
-                      }
+                      onFocusValue={focusOf(legendOf(block.label, param.label), param)}
                     />
                   </div>
                 ))}
               </KnobGroup>
             );
           })}
-        </div>
+        </FitRow>
 
         {/* ── footswitches ────────────────────────────────────── */}
         {config.footswitches.length > 0 && (
-          <div className="relative mt-6 flex flex-wrap items-start justify-center gap-x-6 gap-y-4 border-t border-white/10 pt-5">
-            {config.footswitches.map((fs) => {
-              const target = fs.togglesBlockId;
-              const block = config.effectBlocks.find((b) => b.id === target);
-              const on = target ? (settings.blocks[target]?.enabled ?? false) : false;
-              const color = block ? getNeonColor(block.color).cssVar : globalLed;
-              return (
-                <div key={fs.id} className="flex flex-col items-center">
-                  <ArcLabel
-                    left={fs.arcLabel ?? block?.label ?? fs.label}
-                    ledColor={color}
-                    ledOn={on}
-                  />
-                  <Footswitch
-                    label={fs.label}
-                    active={on}
-                    disabled={readOnly || !target}
-                    onToggle={() => target && toggleBlock(target)}
-                  />
-                </div>
-              );
-            })}
+          <div className="relative mt-6 border-t border-white/10 pt-5">
+            <FitRow innerClassName="items-start gap-x-6">
+              {config.footswitches.map((fs, i) => {
+                const target = fs.togglesBlockId;
+                const block = config.effectBlocks.find((b) => b.id === target);
+                const on = target ? (settings.blocks[target]?.enabled ?? false) : false;
+                const color = block ? getNeonColor(block.color).cssVar : globalLed;
+                return (
+                  <Fragment key={fs.id}>
+                    {segmentInRow && i === segmentIndex && (
+                      <div className="self-center">{segment}</div>
+                    )}
+                    <div className="flex flex-col items-center">
+                      <ArcLabel
+                        left={fs.arcLabel ?? block?.label ?? fs.label}
+                        ledColor={color}
+                        ledOn={on}
+                      />
+                      <Footswitch
+                        label={fs.label}
+                        active={on}
+                        disabled={readOnly || !target}
+                        onToggle={() => target && toggleBlock(target)}
+                      />
+                    </div>
+                  </Fragment>
+                );
+              })}
+            </FitRow>
           </div>
         )}
 
@@ -312,6 +326,20 @@ export function PedalBoard({
       </div>
     </div>
   );
+}
+
+/**
+ * Legenda do display. Quando um nome já contém o outro ("Mod" / "Mod Speed",
+ * "Noise Gate" / "Gate"), repetir vira ruído — fica só o mais descritivo.
+ */
+function legendOf(blockLabel: string, paramLabel: string) {
+  const b = blockLabel.toLowerCase();
+  const p = paramLabel.toLowerCase();
+  if (p.includes(b)) return paramLabel;
+  if (b.includes(p)) return blockLabel;
+  // Serigrafia de duas palavras ("Rvb Decay", "Dly Mix") já diz de que bloco é.
+  if (paramLabel.includes(" ")) return paramLabel;
+  return `${blockLabel} ${paramLabel}`;
 }
 
 /** Agrupamento serigrafado de knobs; o título liga/desliga o bloco. */

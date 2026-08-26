@@ -212,6 +212,11 @@ export type Database = {
       };
     };
     Functions: {
+      /** supabase/migrations/0004_security_limits.sql — 0 = liberado, >0 = segundos de espera */
+      consume_rate_limit: {
+        Args: { p_bucket: string; p_limit: number; p_window_seconds: number };
+        Returns: number;
+      };
       /** supabase/migrations/0003_upload_shape.sql */
       create_upload: {
         Args: {

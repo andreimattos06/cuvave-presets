@@ -1,0 +1,91 @@
+<!--
+  Supabase > Authentication > Emails > Reset password
+  Assunto: Redefinir sua senha — M-Vave Presets
+
+  Mesmo motivo do confirm-signup: token_hash em vez de ConfirmationURL, para o
+  link abrir em qualquer navegador. `next=/redefinir-senha` leva direto ao form.
+-->
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0;padding:0;background-color:#0b0a0f;">
+  <tr>
+    <td align="center" style="padding:32px 16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:520px;background-color:#16141c;border:1px solid #2a2733;border-radius:16px;overflow:hidden;">
+
+        <tr>
+          <td style="height:4px;line-height:4px;font-size:0;background-color:#22d3ee;background-image:linear-gradient(90deg,#22d3ee,#a855f7);">&nbsp;</td>
+        </tr>
+
+        <tr>
+          <td style="padding:32px 32px 8px 32px;">
+            <p style="margin:0;font-size:12px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#22d3ee;">
+              M-Vave Presets
+            </p>
+            <h1 style="margin:14px 0 0 0;font-size:24px;line-height:1.25;font-weight:700;color:#f4f2f8;">
+              Redefinir sua senha
+            </h1>
+          </td>
+        </tr>
+
+        <tr>
+          <td style="padding:16px 32px 0 32px;">
+            <p style="margin:0;font-size:15px;line-height:1.6;color:#c7c2d4;">
+              Alguém pediu uma nova senha para a conta
+              <strong style="color:#f4f2f8;">{{ .Email }}</strong> no M-Vave Presets.
+              Se foi você, escolha uma senha nova pelo botão abaixo.
+            </p>
+          </td>
+        </tr>
+
+        <tr>
+          <td align="center" style="padding:28px 32px 8px 32px;">
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td align="center" style="border-radius:10px;background-color:#a855f7;">
+                  <a href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=recovery&next=/redefinir-senha"
+                     style="display:inline-block;padding:14px 32px;font-size:15px;font-weight:700;color:#ffffff;text-decoration:none;border-radius:10px;">
+                    Criar nova senha
+                  </a>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+
+        <tr>
+          <td style="padding:20px 32px 0 32px;">
+            <p style="margin:0;font-size:13px;line-height:1.6;color:#8f89a0;">
+              O botão não abriu? Copie e cole este endereço no navegador:
+            </p>
+            <p style="margin:8px 0 0 0;font-size:12px;line-height:1.6;word-break:break-all;">
+              <a href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=recovery&next=/redefinir-senha" style="color:#22d3ee;text-decoration:underline;">{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=recovery&next=/redefinir-senha</a>
+            </p>
+          </td>
+        </tr>
+
+        <tr>
+          <td style="padding:24px 32px 0 32px;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#1e1b26;border:1px solid #2a2733;border-radius:10px;">
+              <tr>
+                <td style="padding:14px 16px;">
+                  <p style="margin:0;font-size:13px;line-height:1.6;color:#8f89a0;">
+                    Este link vale por 1 hora e só pode ser usado uma vez. Se você não pediu a
+                    troca, ignore esta mensagem: sua senha atual continua valendo.
+                  </p>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+
+        <tr>
+          <td style="padding:24px 32px 32px 32px;">
+            <p style="margin:0;padding-top:20px;border-top:1px solid #2a2733;font-size:12px;line-height:1.6;color:#6f6982;">
+              M-Vave Presets — presets da comunidade para pedaleiras M-Vave.<br />
+              Este é um e-mail automático de segurança da conta; não responda.
+            </p>
+          </td>
+        </tr>
+
+      </table>
+    </td>
+  </tr>
+</table>

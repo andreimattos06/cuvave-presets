@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "Meu perfil — Cuvave Presets",
+  title: "Meu perfil — M-Vave Presets",
 };
 
 export default async function ProfilePage() {
@@ -59,7 +59,7 @@ export default async function ProfilePage() {
           </h1>
           <p className="mt-1 flex items-center gap-1.5 text-sm text-muted-foreground">
             <CalendarDays className="size-3.5" />
-            No Cuvave Presets desde {memberSince}
+            No M-Vave Presets desde {memberSince}
           </p>
           <p className="text-sm text-muted-foreground">{user.email}</p>
         </div>

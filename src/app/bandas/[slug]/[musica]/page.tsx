@@ -20,10 +20,10 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const song = await getSongBySlug(band.id, musica);
   return {
     title: song
-      ? `${song.title} — ${band.name} — Cuvave Presets`
+      ? `${song.title} — ${band.name} — M-Vave Presets`
       : "Música não encontrada",
     description: song
-      ? `Presets de pedaleira Cuvave para ${song.title}, de ${band.name}.`
+      ? `Presets de pedaleira M-Vave para ${song.title}, de ${band.name}.`
       : undefined,
   };
 }

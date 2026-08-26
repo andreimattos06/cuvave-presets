@@ -99,7 +99,9 @@ export function SevenSegment({ text, label }: { text: string; label?: string }) 
         ))}
       </div>
       {label && (
-        <span className="max-w-[9rem] truncate text-[9px] font-semibold uppercase tracking-widest text-white/55">
+        // Largura fixa: a legenda muda a cada knob e não pode empurrar o que
+        // estiver ao lado do display.
+        <span className="w-[9rem] truncate text-center text-[9px] font-semibold uppercase tracking-widest text-white/55">
           {label}
         </span>
       )}

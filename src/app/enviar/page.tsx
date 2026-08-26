@@ -6,7 +6,7 @@ import { listBands, listPedalModels } from "@/lib/data/catalog";
 import { UploadWizard } from "@/components/upload/upload-wizard";
 
 export const metadata: Metadata = {
-  title: "Enviar presets — Cuvave Presets",
+  title: "Enviar presets — M-Vave Presets",
 };
 
 export default async function UploadPage({ searchParams }: PageProps<"/enviar">) {
