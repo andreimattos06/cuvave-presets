@@ -3,7 +3,7 @@
  * Precisa ser literal (não `text-${color}`) para o compilador do Tailwind
  * conseguir localizar as classes em tempo de build.
  */
-export const NEON_COLOR_CLASSES = {
+const NEON_COLOR_CLASSES = {
   "neon-violet": {
     text: "text-neon-violet",
     bg: "bg-neon-violet",
@@ -69,7 +69,7 @@ export const NEON_COLOR_CLASSES = {
   },
 } as const;
 
-export type NeonColorId = keyof typeof NEON_COLOR_CLASSES;
+type NeonColorId = keyof typeof NEON_COLOR_CLASSES;
 
 export function getNeonColor(id: string) {
   return NEON_COLOR_CLASSES[id as NeonColorId] ?? NEON_COLOR_CLASSES["neon-violet"];

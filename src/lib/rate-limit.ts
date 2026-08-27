@@ -9,7 +9,7 @@ import { createClient } from "@/lib/supabase/server";
  * porque cada instância serverless teria o seu próprio contador.
  */
 
-export type RateLimitRule = { limit: number; windowSeconds: number };
+type RateLimitRule = { limit: number; windowSeconds: number };
 
 /**
  * Tetos por ação. Os de autenticação são apertados de propósito: é onde
@@ -22,7 +22,7 @@ export type RateLimitRule = { limit: number; windowSeconds: number };
  * (supabase/migrations/0009_creation_quotas.sql), que valem mesmo para quem
  * fala com o PostgREST sem passar pelo site.
  */
-export const RATE_LIMITS = {
+const RATE_LIMITS = {
   login: { limit: 10, windowSeconds: 300 },
   signup: { limit: 5, windowSeconds: 3600 },
   passwordRecovery: { limit: 5, windowSeconds: 3600 },

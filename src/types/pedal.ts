@@ -58,7 +58,7 @@ export type BlockSettings = {
   params: Record<string, number>;
 };
 
-/** Valor salvo em presets.settings (jsonb) — o "estado" da pedaleira virtual. */
+/** Valor salvo em preset_boards.settings (jsonb) — o "estado" de um painel. */
 export type PresetSettings = {
   blocks: Record<string, BlockSettings>;
   globalKnobs: Record<string, number>;
@@ -88,7 +88,7 @@ export function createDefaultPresetSettings(
  * Knob de posições fixas — nas M-Vave, IR Cab e Type não varrem valores: são
  * chaves que andam de uma posição para a outra (1, 2, 3… 9).
  */
-export function isSteppedParam(param: KnobParam) {
+function isSteppedParam(param: KnobParam) {
   return param.step >= 1;
 }
 
@@ -117,7 +117,7 @@ export function formatParamValue(param: KnobParam, value: number) {
  * blocos e knobs desconhecidos somem, e todo valor é grudado no passo e preso
  * entre min e max. Roda no servidor antes de gravar — sem isso, um cliente
  * forjado poderia guardar qualquer JSON (ou valores fora de escala) em
- * `presets.settings`.
+ * `preset_boards.settings`.
  */
 export function sanitizePresetSettings(
   config: PedalModelConfig,

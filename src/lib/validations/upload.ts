@@ -36,7 +36,7 @@ const boardInputSchema = z.object({
   settings: presetSettingsSchema,
 });
 
-export const presetInputSchema = z.object({
+const presetInputSchema = z.object({
   name: z
     .string()
     .trim()
@@ -59,7 +59,7 @@ export const presetInputSchema = z.object({
 
 // A pedaleira pertence ao instrumento, não ao preset: os presets são as
 // configurações daquele mesmo aparelho ao longo da música.
-export const trackInputSchema = z.object({
+const trackInputSchema = z.object({
   name: z
     .string()
     .trim()

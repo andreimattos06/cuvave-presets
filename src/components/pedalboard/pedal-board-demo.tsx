@@ -74,7 +74,7 @@ export function PedalBoardDemo({ models }: { models: PedalModel[] }) {
 
       <details className="rounded-lg border border-white/10 bg-black/20 p-4">
         <summary className="cursor-pointer text-sm text-muted-foreground">
-          JSON salvo em presets.settings
+          JSON salvo em preset_boards.settings
         </summary>
         <pre className="mt-3 overflow-x-auto font-mono text-xs text-muted-foreground">
           {JSON.stringify(settings, null, 2)}

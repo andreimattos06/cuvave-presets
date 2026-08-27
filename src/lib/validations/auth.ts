@@ -72,10 +72,6 @@ export function emailIssue(raw: string): string | null {
   return null;
 }
 
-export function isEmailValid(value: string) {
-  return emailIssue(value) === null;
-}
-
 /** Aplica uma lista de FieldRule como issues do zod, na mesma ordem do checklist. */
 function withRules(rules: FieldRule[]) {
   return (value: string, ctx: z.RefinementCtx) => {

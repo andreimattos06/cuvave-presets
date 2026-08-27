@@ -393,10 +393,6 @@ export async function getUploadForEdit(uploadId: string, userId: string) {
   };
 }
 
-export type UploadForEdit = NonNullable<
-  Awaited<ReturnType<typeof getUploadForEdit>>
->;
-
 export type CatalogHit = {
   kind: "band" | "song";
   id: string;

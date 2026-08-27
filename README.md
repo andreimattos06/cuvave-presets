@@ -89,9 +89,9 @@ Abra [http://localhost:3000](http://localhost:3000).
 - `src/components/site` — navegação, hero, cards de banda/música/upload
 - `src/lib/mvave/tkg.ts` — leitura e escrita do arquivo `.tkg` (formato de preset do app oficial da Tank-G), com o mapa dos 21 bytes comentado
 - `src/lib/pedals/availability.ts` — quais pedaleiras aparecem para escolha (hoje só a Tank-G)
+- `src/lib/store` — estado client-side (Zustand) do wizard de envio
 - `src/lib/supabase` — clientes Supabase (browser/server)
 - `src/actions` — Server Actions (mutations)
-- `src/stores` — estado client-side (Zustand), usado no wizard de envio
 - `src/types` — tipos do banco (`database.ts`) e da pedaleira (`pedal.ts`)
 - `src/proxy.ts` — Proxy do Next.js 16 (equivalente ao antigo Middleware) para sessão Supabase
 - `supabase/migrations` e `supabase/seed` — SQL do schema, RLS e catálogo inicial de pedaleiras

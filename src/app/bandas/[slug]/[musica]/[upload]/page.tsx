@@ -8,11 +8,9 @@ import { VoteButtons } from "@/components/catalog/vote-buttons";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { CalendarDays, ChevronLeft, Eye, PencilLine, ThumbsUp } from "lucide-react";
 import { UploadActions } from "@/components/catalog/upload-actions";
+import { formatDate } from "@/lib/date";
 
 type Params = PageProps<"/bandas/[slug]/[musica]/[upload]">;
-
-/** Data curta, do jeito que se lê em português: 26/08/2026. */
-const shortDate = (iso: string) => new Date(iso).toLocaleDateString("pt-BR");
 
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { upload: uploadId } = await params;
@@ -87,14 +85,14 @@ export default async function UploadPage({ params }: Params) {
             </span>
             <span className="inline-flex items-center gap-1">
               <CalendarDays className="size-3.5" />
-              Enviado em {shortDate(upload.created_at)}
+              Enviado em {formatDate(upload.created_at)}
             </span>
             {/* Só aparece quando houve edição de fato — repetir a data de envio
                 em outra frase não diria nada a mais. */}
             {upload.updated_at > upload.created_at && (
               <span className="inline-flex items-center gap-1">
                 <PencilLine className="size-3.5" />
-                Editado em {shortDate(upload.updated_at)}
+                Editado em {formatDate(upload.updated_at)}
               </span>
             )}
           </div>

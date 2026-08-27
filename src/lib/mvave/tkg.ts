@@ -22,7 +22,7 @@ import { createDefaultPresetSettings, formatParamValue } from "@/types/pedal";
  * fora do preset. Na importação ele fica como estava.
  */
 
-export const TKG_MODEL_SLUG = "tank-g";
+const TKG_MODEL_SLUG = "tank-g";
 export const TKG_BYTE_LENGTH = 21;
 
 /** Só a Tank-G grava .tkg; os outros modelos usam o código de preset do site. */

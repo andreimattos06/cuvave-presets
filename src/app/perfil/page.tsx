@@ -3,6 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
 import { listUploadsByUser } from "@/lib/data/catalog";
+import { formatDate, formatMonthYear } from "@/lib/date";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -16,9 +17,6 @@ import {
   Trophy,
   UploadCloud,
 } from "lucide-react";
-
-/** Data curta, do jeito que se lê em português: 26/08/2026. */
-const shortDate = (iso: string) => new Date(iso).toLocaleDateString("pt-BR");
 
 export const metadata: Metadata = {
   title: "Meu perfil — M-Vave Presets",
@@ -38,10 +36,7 @@ export default async function ProfilePage() {
     { presets: 0, approvals: 0 },
   );
 
-  const memberSince = new Date(user.profile.created_at).toLocaleDateString(
-    "pt-BR",
-    { month: "long", year: "numeric" },
-  );
+  const memberSince = formatMonthYear(user.profile.created_at);
 
   return (
     <div className="mx-auto w-full max-w-5xl px-4 py-12 sm:px-6">
@@ -151,12 +146,12 @@ export default async function ProfilePage() {
                     <p className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
                       <span className="inline-flex items-center gap-1">
                         <UploadCloud className="size-3" />
-                        Enviado em {shortDate(upload.created_at)}
+                        Enviado em {formatDate(upload.created_at)}
                       </span>
                       {edited && (
                         <span className="inline-flex items-center gap-1">
                           <PencilLine className="size-3" />
-                          Editado em {shortDate(upload.updated_at)}
+                          Editado em {formatDate(upload.updated_at)}
                         </span>
                       )}
                     </p>
