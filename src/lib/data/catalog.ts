@@ -2,6 +2,7 @@ import "server-only";
 import { createClient } from "@/lib/supabase/server";
 import { LIMITS } from "@/lib/validations/limits";
 import type { PedalModelConfig, PresetSettings } from "@/types/pedal";
+import { AVAILABLE_PEDAL_SLUGS } from "@/lib/pedals/availability";
 
 /** Leituras públicas do catálogo — funcionam com ou sem sessão (RLS libera SELECT). */
 
@@ -78,20 +79,60 @@ export type SongUpload = {
   approvals: number;
   disapprovals: number;
   myVote: 1 | -1 | null;
+  updated_at: string;
   tracks: {
     id: string;
     name: string;
     position: number;
-    /** Uma pedaleira por instrumento; os presets abaixo são todos dela. */
-    pedalModel: { id: string; name: string; slug: string; config: PedalModelConfig };
+    /** Pedaleira principal do instrumento — semeia os presets novos. */
+    pedalModel: PedalModelRef;
     presets: {
       id: string;
       name: string;
       position: number;
-      settings: PresetSettings;
+      /** Uma configuração por pedaleira: o mesmo trecho em aparelhos diferentes. */
+      boards: PresetBoard[];
     }[];
   }[];
 };
+
+export type PedalModelRef = {
+  id: string;
+  name: string;
+  slug: string;
+  config: PedalModelConfig;
+};
+
+export type PresetBoard = {
+  id: string;
+  position: number;
+  settings: PresetSettings;
+  pedalModel: PedalModelRef;
+};
+
+/**
+ * O PostgREST devolve os filhos na ordem que o Postgres entregar, que não é
+ * ordem nenhuma. A posição é o que o autor escolheu — ordena instrumentos,
+ * presets e pedaleiras por ela antes de qualquer coisa chegar à tela.
+ */
+function sortTracks<
+  T extends {
+    position: number;
+    presets: { position: number; boards: { position: number }[] }[];
+  },
+>(tracks: T[]) {
+  return [...tracks]
+    .sort((a, b) => a.position - b.position)
+    .map((track) => ({
+      ...track,
+      presets: [...track.presets]
+        .sort((a, b) => a.position - b.position)
+        .map((preset) => ({
+          ...preset,
+          boards: [...preset.boards].sort((a, b) => a.position - b.position),
+        })),
+    }));
+}
 
 /**
  * Uploads de uma música com faixas, presets e placar, já ordenados por
@@ -109,11 +150,13 @@ export async function listUploadsForSong(
   const { data, error } = await supabase
     .from("uploads")
     .select(
-      `id, title, note, views, created_at,
+      `id, title, note, views, created_at, updated_at,
        author:profiles ( id, username, avatar_url ),
        tracks ( id, name, position,
          pedalModel:pedal_models ( id, name, slug, config ),
-         presets ( id, name, position, settings ) )`,
+         presets ( id, name, position,
+           boards:preset_boards ( id, position, settings,
+             pedalModel:pedal_models ( id, name, slug, config ) ) ) )`,
     )
     .eq("song_id", songId);
 
@@ -148,12 +191,7 @@ export async function listUploadsForSong(
         approvals: score?.approvals ?? 0,
         disapprovals: score?.disapprovals ?? 0,
         myVote: voteById.get(upload.id) ?? null,
-        tracks: [...upload.tracks]
-          .sort((a, b) => a.position - b.position)
-          .map((track) => ({
-            ...track,
-            presets: [...track.presets].sort((a, b) => a.position - b.position),
-          })),
+        tracks: sortTracks(upload.tracks),
       };
     })
     .sort(
@@ -173,11 +211,13 @@ export async function getUploadById(
   const { data, error } = await supabase
     .from("uploads")
     .select(
-      `id, title, note, views, created_at,
+      `id, title, note, views, created_at, updated_at,
        author:profiles ( id, username, avatar_url ),
        tracks ( id, name, position,
          pedalModel:pedal_models ( id, name, slug, config ),
-         presets ( id, name, position, settings ) )`,
+         presets ( id, name, position,
+           boards:preset_boards ( id, position, settings,
+             pedalModel:pedal_models ( id, name, slug, config ) ) ) )`,
     )
     .eq("id", uploadId)
     .maybeSingle();
@@ -208,12 +248,7 @@ export async function getUploadById(
     approvals: score?.approvals ?? 0,
     disapprovals: score?.disapprovals ?? 0,
     myVote,
-    tracks: [...data.tracks]
-      .sort((a, b) => a.position - b.position)
-      .map((track) => ({
-        ...track,
-        presets: [...track.presets].sort((a, b) => a.position - b.position),
-      })),
+    tracks: sortTracks(data.tracks),
   };
 }
 
@@ -275,7 +310,7 @@ export async function listUploadsByUser(userId: string) {
   const { data, error } = await supabase
     .from("uploads")
     .select(
-      `id, title, note, views, created_at,
+      `id, title, note, views, created_at, updated_at,
        song:songs ( title, slug, band:bands ( name, slug ) ),
        tracks ( id, presets ( id ) )`,
     )
@@ -304,6 +339,63 @@ export async function listUploadsByUser(userId: string) {
     }))
     .sort((a, b) => b.score - a.score);
 }
+
+/**
+ * Um envio do próprio usuário, na forma que o wizard de edição entende. Volta
+ * null quando o envio não existe ou é de outra pessoa — a checagem de dono fica
+ * aqui e não só na RLS, para a página de edição responder 404 em vez de abrir
+ * um formulário vazio.
+ */
+export async function getUploadForEdit(uploadId: string, userId: string) {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("uploads")
+    .select(
+      `id, title, note, user_id,
+       song:songs ( id, title, band:bands ( id, name ) ),
+       tracks ( id, name, position, pedal_model_id,
+         presets ( id, name, position,
+           boards:preset_boards ( id, position, settings, pedal_model_id ) ) )`,
+    )
+    .eq("id", uploadId)
+    .maybeSingle();
+
+  if (error) throw error;
+  if (!data || data.user_id !== userId || !data.song) return null;
+
+  return {
+    id: data.id,
+    title: data.title,
+    note: data.note ?? "",
+    song: {
+      id: data.song.id,
+      title: data.song.title,
+      band: data.song.band,
+    },
+    tracks: [...data.tracks]
+      .sort((a, b) => a.position - b.position)
+      .map((track) => ({
+        name: track.name,
+        pedalModelId: track.pedal_model_id,
+        presets: [...track.presets]
+          .sort((a, b) => a.position - b.position)
+          .map((preset) => ({
+            name: preset.name,
+            boards: [...preset.boards]
+              .sort((a, b) => a.position - b.position)
+              .map((board) => ({
+                pedalModelId: board.pedal_model_id,
+                settings: board.settings,
+              })),
+          })),
+      })),
+  };
+}
+
+export type UploadForEdit = NonNullable<
+  Awaited<ReturnType<typeof getUploadForEdit>>
+>;
 
 export type CatalogHit = {
   kind: "band" | "song";
@@ -338,11 +430,17 @@ export async function searchCatalogRanked(
   return data ?? [];
 }
 
+/**
+ * Só as pedaleiras liberadas para escolha — ver src/lib/pedals/availability.ts.
+ * Os envios antigos continuam abrindo com o painel do modelo deles: o filtro é
+ * de escolha, não de leitura.
+ */
 export async function listPedalModels() {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("pedal_models")
     .select("id, name, slug, config")
+    .in("slug", [...AVAILABLE_PEDAL_SLUGS])
     .order("name");
 
   if (error) throw error;

@@ -119,6 +119,7 @@ export type Database = {
           note: string | null;
           views: number;
           created_at: string;
+          updated_at: string;
         };
         Insert: {
           id?: string;
@@ -128,6 +129,7 @@ export type Database = {
           note?: string | null;
           views?: number;
           created_at?: string;
+          updated_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["uploads"]["Insert"]>;
         Relationships: [
@@ -164,7 +166,6 @@ export type Database = {
           track_id: string;
           name: string;
           position: number;
-          settings: PresetSettings;
           created_at: string;
         };
         Insert: {
@@ -172,11 +173,34 @@ export type Database = {
           track_id: string;
           name: string;
           position?: number;
-          settings: PresetSettings;
           created_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["presets"]["Insert"]>;
         Relationships: [Rel<"presets_track_id_fkey", "track_id", "tracks">];
+      };
+      /** Uma pedaleira dentro de um preset — ver 0010_preset_boards.sql. */
+      preset_boards: {
+        Row: {
+          id: string;
+          preset_id: string;
+          pedal_model_id: string;
+          settings: PresetSettings;
+          position: number;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          preset_id: string;
+          pedal_model_id: string;
+          settings: PresetSettings;
+          position?: number;
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["preset_boards"]["Insert"]>;
+        Relationships: [
+          Rel<"preset_boards_preset_id_fkey", "preset_id", "presets">,
+          Rel<"preset_boards_pedal_model_id_fkey", "pedal_model_id", "pedal_models">,
+        ];
       };
       votes: {
         Row: {
@@ -217,10 +241,20 @@ export type Database = {
         Args: { p_bucket: string; p_limit: number; p_window_seconds: number };
         Returns: number;
       };
-      /** supabase/migrations/0003_upload_shape.sql */
+      /** supabase/migrations/0010_preset_boards.sql */
       create_upload: {
         Args: {
           p_song_id: string;
+          p_title: string;
+          p_note: string | null;
+          p_tracks: Json;
+        };
+        Returns: string;
+      };
+      /** supabase/migrations/0010_preset_boards.sql */
+      update_upload: {
+        Args: {
+          p_upload_id: string;
           p_title: string;
           p_note: string | null;
           p_tracks: Json;

@@ -3,21 +3,33 @@
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import { PedalBoard } from "@/components/pedalboard/pedal-board";
-import { DeviceTransfer } from "@/components/mvave/device-transfer";
+import { TkgDownloadButton } from "@/components/mvave/tkg-panel";
+import { supportsTkg } from "@/lib/mvave/tkg";
 import { registerUploadView } from "@/actions/uploads";
 import type { SongUpload } from "@/lib/data/catalog";
-import { Guitar } from "lucide-react";
+import { Guitar, Sliders } from "lucide-react";
 
 /**
  * Página do envio: escolhe o instrumento e o preset, e mostra a pedaleira com a
  * configuração exata que o autor subiu (só leitura).
  */
-export function UploadViewer({ upload }: { upload: SongUpload }) {
+export function UploadViewer({
+  upload,
+  songTitle,
+}: {
+  upload: SongUpload;
+  /** Entra no nome do arquivo .tkg; a música não está no envio. */
+  songTitle?: string;
+}) {
   const [trackId, setTrackId] = useState(upload.tracks[0]?.id ?? "");
   const [presetId, setPresetId] = useState(upload.tracks[0]?.presets[0]?.id ?? "");
+  /** Pedaleira escolhida pelo slug, para a escolha sobreviver à troca de preset. */
+  const [boardSlug, setBoardSlug] = useState("");
 
   const track = upload.tracks.find((t) => t.id === trackId) ?? upload.tracks[0];
   const preset = track?.presets.find((p) => p.id === presetId) ?? track?.presets[0];
+  const board =
+    preset?.boards.find((b) => b.pedalModel.slug === boardSlug) ?? preset?.boards[0];
 
   // Só conta quando a página monta de fato no navegador — o prefetch do Next
   // busca a rota antes de qualquer clique e inflaria o contador.
@@ -89,20 +101,59 @@ export function UploadViewer({ upload }: { upload: SongUpload }) {
             </div>
           </div>
 
-          {preset && (
+          {preset && board && (
             <>
-              <div className="flex justify-end">
-                <DeviceTransfer
-                  model={track.pedalModel}
-                  presetName={preset.name}
-                  settings={preset.settings}
-                />
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                {/* Um trecho pode vir descrito em mais de um aparelho; com um
+                    só, mostrar a escolha seria ruído. */}
+                {preset.boards.length > 1 ? (
+                  <div
+                    className="flex flex-wrap gap-2"
+                    role="group"
+                    aria-label="Pedaleira"
+                  >
+                    {preset.boards.map((b) => (
+                      <button
+                        key={b.id}
+                        type="button"
+                        onClick={() => setBoardSlug(b.pedalModel.slug)}
+                        className={cn(
+                          "flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
+                          b.id === board.id
+                            ? "border-primary/40 bg-primary/15 text-primary"
+                            : "border-white/10 text-muted-foreground hover:text-foreground",
+                        )}
+                      >
+                        <Sliders className="size-3" />
+                        {b.pedalModel.name}
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <span />
+                )}
+
+                {/* Quem está vendo o preset dos outros só quer levar para a
+                    pedaleira — daí só o .tkg, sem as abas de MIDI e código. */}
+                {supportsTkg(board.pedalModel.slug) && (
+                  <TkgDownloadButton
+                    model={board.pedalModel}
+                    settings={board.settings}
+                    parts={{
+                      song: songTitle,
+                      track: track.name,
+                      preset: preset.name,
+                    }}
+                  />
+                )}
               </div>
+
               <PedalBoard
-                modelName={track.pedalModel.name}
-                config={track.pedalModel.config}
+                key={board.id}
+                modelName={board.pedalModel.name}
+                config={board.pedalModel.config}
                 presetName={preset.name}
-                value={preset.settings}
+                value={board.settings}
                 readOnly
               />
             </>

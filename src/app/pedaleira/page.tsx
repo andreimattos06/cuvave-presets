@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { PedalBoardDemo } from "@/components/pedalboard/pedal-board-demo";
 import { DEMO_MODELS } from "@/components/pedalboard/demo-models";
+import { filterAvailablePedals } from "@/lib/pedals/availability";
 
 export const metadata: Metadata = {
   title: "Pedaleira virtual · M-Vave Presets",
@@ -20,7 +21,7 @@ export default function PedaleiraPage() {
         do bloco serigrafado para ligar e desligar cada efeito.
       </p>
       <div className="mt-8">
-        <PedalBoardDemo models={DEMO_MODELS} />
+        <PedalBoardDemo models={filterAvailablePedals(DEMO_MODELS)} />
       </div>
     </div>
   );

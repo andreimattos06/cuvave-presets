@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
+import { LIMITS } from "@/lib/validations/limits";
 import {
   createDefaultPresetSettings,
   type PedalModel,
@@ -48,6 +49,7 @@ export function PedalBoardDemo({ models }: { models: PedalModel[] }) {
             id="preset-name"
             value={presetName}
             onChange={(e) => setPresetName(e.target.value)}
+            maxLength={LIMITS.presetNameMax}
             className="w-56"
           />
         </div>

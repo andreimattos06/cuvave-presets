@@ -92,6 +92,21 @@ export function isSteppedParam(param: KnobParam) {
   return param.step >= 1;
 }
 
+/** Acima disso a escala vira mancha: a Tank-G tem knobs inteiros de 0 a 99. */
+const MAX_SWITCH_POSITIONS = 12;
+
+/**
+ * Chave de poucas posições (IR Cab, Type) — a que ganha uma marca serigrafada
+ * por posição e trava seca entre elas. Um knob inteiro de 0 a 99 também anda de
+ * um em um, mas desenhar cem tracinhos ao redor dele não ajudaria ninguém.
+ */
+export function isSwitchParam(param: KnobParam) {
+  return (
+    isSteppedParam(param) &&
+    (param.max - param.min) / param.step + 1 <= MAX_SWITCH_POSITIONS
+  );
+}
+
 /** Texto do valor como o aparelho mostra: inteiro nas chaves, 1 casa nos demais. */
 export function formatParamValue(param: KnobParam, value: number) {
   return isSteppedParam(param) ? String(Math.round(value)) : value.toFixed(1);

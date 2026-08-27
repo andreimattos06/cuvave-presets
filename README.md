@@ -2,7 +2,7 @@
 
 Plataforma para músicos catalogarem e compartilharem presets de pedaleiras M-Vave, com uma réplica gráfica interativa da pedaleira e votação comunitária para ordenar contribuições.
 
-Cada música pode receber vários envios. Um envio tem nome próprio e até **10 instrumentos** ("guitarra principal", "guitarra ritmo"…); cada instrumento usa **uma pedaleira** e guarda até **8 presets** ("solo", "ponte"…) daquele aparelho.
+Cada música pode receber vários envios. Um envio tem nome próprio e até **10 instrumentos** ("guitarra principal", "guitarra ritmo"…); cada instrumento guarda até **8 presets** ("solo", "ponte"…), e cada preset pode ser descrito em até **4 pedaleiras** diferentes — quem for ver escolhe em qual aparelho quer olhar. O autor pode editar ou excluir os próprios envios pelo perfil.
 
 Stack: Next.js 16 (App Router) + TypeScript, Supabase (Auth/Postgres/Storage), Tailwind CSS v4 + shadcn/ui, Framer Motion, Zustand, react-hook-form + zod.
 
@@ -87,6 +87,8 @@ Abra [http://localhost:3000](http://localhost:3000).
 - `src/app` — rotas (App Router)
 - `src/components/pedalboard` — motor data-driven da réplica virtual da pedaleira
 - `src/components/site` — navegação, hero, cards de banda/música/upload
+- `src/lib/mvave/tkg.ts` — leitura e escrita do arquivo `.tkg` (formato de preset do app oficial da Tank-G), com o mapa dos 21 bytes comentado
+- `src/lib/pedals/availability.ts` — quais pedaleiras aparecem para escolha (hoje só a Tank-G)
 - `src/lib/supabase` — clientes Supabase (browser/server)
 - `src/actions` — Server Actions (mutations)
 - `src/stores` — estado client-side (Zustand), usado no wizard de envio

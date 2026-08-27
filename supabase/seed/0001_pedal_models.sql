@@ -60,34 +60,34 @@ insert into public.pedal_models (name, slug, config) values
     "hasExpressionPedal": false,
     "globalLedColor": "neon-white",
     "globalKnobs": [
-      { "id": "master", "label": "Master", "min": 0, "max": 10, "step": 0.1, "default": 7 }
+      { "id": "master", "label": "Master", "min": 0, "max": 100, "step": 1, "default": 70 }
     ],
     "effectBlocks": [
       { "id": "cab", "label": "IR Cab", "color": "neon-amber", "params": [
-        { "id": "ir", "label": "IR Cab", "min": 1, "max": 9, "step": 1, "default": 1 }
+        { "id": "ir", "label": "IR Cab", "min": 0, "max": 9, "step": 1, "default": 1 }
       ]},
       { "id": "reverb", "label": "Reverb", "color": "neon-violet", "params": [
-        { "id": "mix", "label": "Rvb Mix", "min": 0, "max": 10, "step": 0.1, "default": 3 },
-        { "id": "decay", "label": "Rvb Decay", "min": 0, "max": 10, "step": 0.1, "default": 4 }
+        { "id": "type", "label": "Rvb Type", "min": 1, "max": 100, "step": 1, "default": 1 },
+        { "id": "level", "label": "Rvb Level", "min": 1, "max": 100, "step": 1, "default": 30 }
       ]},
       { "id": "delay", "label": "Delay", "color": "neon-blue", "params": [
-        { "id": "time", "label": "Dly Time", "min": 0, "max": 10, "step": 0.1, "default": 4 },
-        { "id": "mix", "label": "Dly Mix", "min": 0, "max": 10, "step": 0.1, "default": 3 }
+        { "id": "type", "label": "Dly Type", "min": 1, "max": 100, "step": 1, "default": 1 },
+        { "id": "level", "label": "Dly Level", "min": 1, "max": 100, "step": 1, "default": 30 }
       ]},
       { "id": "mod", "label": "Mod", "color": "neon-emerald", "params": [
-        { "id": "speed", "label": "Mod Speed", "min": 0, "max": 10, "step": 0.1, "default": 3 },
-        { "id": "fx", "label": "Mod FX", "min": 0, "max": 10, "step": 0.1, "default": 4 }
+        { "id": "type", "label": "Mod Type", "min": 1, "max": 100, "step": 1, "default": 1 },
+        { "id": "level", "label": "Mod Level", "min": 1, "max": 100, "step": 1, "default": 30 }
       ]},
       { "id": "amp", "label": "Amp", "color": "neon-red", "params": [
-        { "id": "volume", "label": "Volume", "min": 0, "max": 10, "step": 0.1, "default": 6 },
-        { "id": "bass", "label": "Bass", "min": 0, "max": 10, "step": 0.1, "default": 5 },
-        { "id": "middle", "label": "Middle", "min": 0, "max": 10, "step": 0.1, "default": 5 },
-        { "id": "treble", "label": "Treble", "min": 0, "max": 10, "step": 0.1, "default": 5 },
-        { "id": "gain", "label": "Gain", "min": 0, "max": 10, "step": 0.1, "default": 6 },
-        { "id": "type", "label": "Type", "min": 1, "max": 9, "step": 1, "default": 1 }
+        { "id": "type", "label": "Type", "min": 1, "max": 9, "step": 1, "default": 1 },
+        { "id": "gain", "label": "Gain", "min": 0, "max": 100, "step": 1, "default": 60 },
+        { "id": "treble", "label": "Treble", "min": 0, "max": 100, "step": 1, "default": 50 },
+        { "id": "middle", "label": "Middle", "min": 0, "max": 100, "step": 1, "default": 50 },
+        { "id": "bass", "label": "Bass", "min": 0, "max": 100, "step": 1, "default": 50 },
+        { "id": "volume", "label": "Volume", "min": 0, "max": 100, "step": 1, "default": 60 }
       ]},
       { "id": "gate", "label": "Noise Gate", "color": "neon-white", "params": [
-        { "id": "depth", "label": "Gate", "min": 0, "max": 10, "step": 0.1, "default": 3 }
+        { "id": "depth", "label": "Gate", "min": 0, "max": 100, "step": 1, "default": 30 }
       ]}
     ],
     "footswitches": [

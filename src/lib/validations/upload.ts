@@ -27,13 +27,34 @@ const presetSettingsSchema = z.object({
     .refine((k) => Object.keys(k).length <= MAX_PARAMS, "Preset inválido."),
 });
 
+/**
+ * Uma pedaleira dentro do preset. O mesmo trecho pode ser descrito em mais de
+ * um aparelho — ver supabase/migrations/0010_preset_boards.sql.
+ */
+const boardInputSchema = z.object({
+  pedalModelId: z.string().uuid("Escolha a pedaleira desta configuração."),
+  settings: presetSettingsSchema,
+});
+
 export const presetInputSchema = z.object({
   name: z
     .string()
     .trim()
     .min(1, "Dê um nome ao preset (ex.: solo, refrão).")
     .max(LIMITS.presetNameMax, `Use no máximo ${LIMITS.presetNameMax} caracteres.`),
-  settings: presetSettingsSchema,
+  boards: z
+    .array(boardInputSchema)
+    .min(1, "Cada preset precisa de pelo menos uma pedaleira.")
+    .max(
+      LIMITS.boardsPerPreset,
+      `Um preset aceita no máximo ${LIMITS.boardsPerPreset} pedaleiras.`,
+    )
+    // A mesma pedaleira duas vezes no mesmo preset não teria como ser exibida:
+    // qual das duas seria a configuração boa?
+    .refine(
+      (boards) => new Set(boards.map((b) => b.pedalModelId)).size === boards.length,
+      "Não repita a mesma pedaleira dentro de um preset.",
+    ),
 });
 
 // A pedaleira pertence ao instrumento, não ao preset: os presets são as

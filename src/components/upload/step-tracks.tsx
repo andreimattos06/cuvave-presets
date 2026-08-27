@@ -2,12 +2,14 @@
 
 import { useState } from "react";
 import {
+  MAX_BOARDS_PER_PRESET,
   MAX_TRACKS_PER_UPLOAD,
   useUploadWizard,
 } from "@/lib/store/upload-wizard";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { Textarea } from "@/components/ui/textarea";
 import type { PedalModel } from "@/types/pedal";
 import { Guitar, Plus, Trash2 } from "lucide-react";
@@ -25,7 +27,7 @@ export function StepTracks({ models }: { models: PedalModel[] }) {
     tracks,
     addTrack,
     renameTrack,
-    setTrackModel,
+    setTrackModels,
     removeTrack,
     title,
     setTitle,
@@ -63,8 +65,9 @@ export function StepTracks({ models }: { models: PedalModel[] }) {
       <div>
         <Label htmlFor="track-name">Instrumentos</Label>
         <p className="mt-1 text-xs text-muted-foreground">
-          Cada instrumento tem uma pedaleira e até 8 presets. Você dá o nome que
-          quiser — no máximo {MAX_TRACKS_PER_UPLOAD} por envio.
+          Cada instrumento tem até 8 presets, e cada preset pode ser descrito em
+          mais de uma pedaleira. Você dá o nome que quiser — no máximo{" "}
+          {MAX_TRACKS_PER_UPLOAD} instrumentos por envio.
         </p>
         <form
           className="mt-3 flex gap-2"
@@ -125,21 +128,25 @@ export function StepTracks({ models }: { models: PedalModel[] }) {
                 maxLength={LIMITS.trackNameMax}
                 className="min-w-40 flex-1 border-none bg-transparent px-0 focus-visible:ring-0"
               />
-              <select
-                value={track.pedalModelId}
-                aria-label={`Pedaleira de ${track.name}`}
-                onChange={(e) => {
-                  const next = models.find((m) => m.id === e.target.value);
-                  if (next) setTrackModel(track.localId, next);
+              <PedalPicker
+                trackName={track.name}
+                models={models}
+                selected={track.pedalModelIds}
+                onToggle={(modelId) => {
+                  const next = track.pedalModelIds.includes(modelId)
+                    ? track.pedalModelIds.filter((id) => id !== modelId)
+                    : [...track.pedalModelIds, modelId];
+                  // Instrumento sem pedaleira nenhuma não teria o que mostrar,
+                  // e acima do teto o banco recusaria o envio.
+                  if (next.length === 0 || next.length > MAX_BOARDS_PER_PRESET) return;
+                  setTrackModels(
+                    track.localId,
+                    next
+                      .map((id) => models.find((m) => m.id === id))
+                      .filter((m) => m !== undefined),
+                  );
                 }}
-                className="h-8 rounded-md border border-input bg-transparent px-2 text-xs outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              >
-                {models.map((m) => (
-                  <option key={m.id} value={m.id} className="bg-background">
-                    {m.name}
-                  </option>
-                ))}
-              </select>
+              />
               <span className="shrink-0 text-xs text-muted-foreground">
                 {track.presets.length}/8 presets
               </span>
@@ -167,6 +174,57 @@ export function StepTracks({ models }: { models: PedalModel[] }) {
           className="mt-1.5"
         />
       </div>
+    </div>
+  );
+}
+
+/**
+ * Pedaleiras do instrumento. Um envio pode descrever o mesmo trecho em mais de
+ * um aparelho ("assim na Tank-G, assim na Baby"), e quem for ver escolhe qual
+ * quer olhar. Enquanto só houver um modelo liberado, isto vira um único chip
+ * fixo — mas o caminho já está pronto para o dia em que houver mais.
+ */
+function PedalPicker({
+  trackName,
+  models,
+  selected,
+  onToggle,
+}: {
+  trackName: string;
+  models: PedalModel[];
+  selected: string[];
+  onToggle: (modelId: string) => void;
+}) {
+  const single = models.length === 1;
+
+  return (
+    <div
+      className="flex flex-wrap items-center gap-1.5"
+      role="group"
+      aria-label={`Pedaleiras de ${trackName}`}
+    >
+      {models.map((model) => {
+        const on = selected.includes(model.id);
+        return (
+          <button
+            key={model.id}
+            type="button"
+            role="checkbox"
+            aria-checked={on}
+            disabled={single}
+            onClick={() => onToggle(model.id)}
+            className={cn(
+              "rounded-full border px-2.5 py-1 text-xs font-medium transition-colors",
+              on
+                ? "border-primary/40 bg-primary/15 text-primary"
+                : "border-white/10 text-muted-foreground hover:text-foreground",
+              single && "cursor-default",
+            )}
+          >
+            {model.name}
+          </button>
+        );
+      })}
     </div>
   );
 }

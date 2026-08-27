@@ -14,11 +14,48 @@ const k = (id: string, label: string, def: number) => ({
   default: def,
 });
 
-/** Chave de 9 posições (IR Cab, Type): anda de um em um, sem valores quebrados. */
-const sw = (id: string, label: string, def: number) => ({
+/**
+ * Knob da Tank-G: o aparelho grava 0 a 100 em cada parâmetro (ver o mapa do
+ * .tkg em src/lib/mvave/tkg.ts), então o painel usa a mesma escala em vez dos
+ * 0–10 dos outros modelos — assim o número da tela é o número do aparelho.
+ */
+const tg = (id: string, label: string, def: number) => ({
+  id,
+  label,
+  min: 0,
+  max: 100,
+  step: 1,
+  default: def,
+});
+
+/**
+ * Type e Level de Mod, Delay e Reverb: 1 a 100. Não chegam a zero — quem
+ * desliga o bloco é o footswitch, não o knob.
+ */
+const tgOn = (id: string, label: string, def: number) => ({
   id,
   label,
   min: 1,
+  max: 100,
+  step: 1,
+  default: def,
+});
+
+/** Amp Type: 9 modelos de amplificador. */
+const tgAmp = (id: string, label: string, def: number) => ({
+  id,
+  label,
+  min: 1,
+  max: 9,
+  step: 1,
+  default: def,
+});
+
+/** IR Cab: 9 gabinetes mais a posição 0, que é o aparelho sem IR nenhum. */
+const tgCab = (id: string, label: string, def: number) => ({
+  id,
+  label,
+  min: 0,
   max: 9,
   step: 1,
   default: def,
@@ -91,50 +128,51 @@ export const DEMO_MODELS: PedalModel[] = [
       globalLedColor: "neon-white",
       // Ordem da serigrafia do aparelho: Master, IR Cab, Reverb, Delay, Mod,
       // Amp e Noise Gate.
-      globalKnobs: [k("master", "Master", 7)],
+      globalKnobs: [tg("master", "Master", 70)],
+      // A ordem dos knobs dentro de cada bloco é a mesma dos bytes do .tkg.
       effectBlocks: [
         {
           id: "cab",
           label: "IR Cab",
           color: "neon-amber",
-          params: [sw("ir", "IR Cab", 1)],
+          params: [tgCab("ir", "IR Cab", 1)],
         },
         {
           id: "reverb",
           label: "Reverb",
           color: "neon-violet",
-          params: [k("mix", "Rvb Mix", 3), k("decay", "Rvb Decay", 4)],
+          params: [tgOn("type", "Rvb Type", 1), tgOn("level", "Rvb Level", 30)],
         },
         {
           id: "delay",
           label: "Delay",
           color: "neon-blue",
-          params: [k("time", "Dly Time", 4), k("mix", "Dly Mix", 3)],
+          params: [tgOn("type", "Dly Type", 1), tgOn("level", "Dly Level", 30)],
         },
         {
           id: "mod",
           label: "Mod",
           color: "neon-emerald",
-          params: [k("speed", "Mod Speed", 3), k("fx", "Mod FX", 4)],
+          params: [tgOn("type", "Mod Type", 1), tgOn("level", "Mod Level", 30)],
         },
         {
           id: "amp",
           label: "Amp",
           color: "neon-red",
           params: [
-            k("volume", "Volume", 6),
-            k("bass", "Bass", 5),
-            k("middle", "Middle", 5),
-            k("treble", "Treble", 5),
-            k("gain", "Gain", 6),
-            sw("type", "Type", 1),
+            tgAmp("type", "Type", 1),
+            tg("gain", "Gain", 60),
+            tg("treble", "Treble", 50),
+            tg("middle", "Middle", 50),
+            tg("bass", "Bass", 50),
+            tg("volume", "Volume", 60),
           ],
         },
         {
           id: "gate",
           label: "Noise Gate",
           color: "neon-white",
-          params: [k("depth", "Gate", 3)],
+          params: [tg("depth", "Gate", 30)],
         },
       ],
       footswitches: [

@@ -4,8 +4,12 @@ import { useEffect, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
-import { useUploadWizard, type WizardTrack } from "@/lib/store/upload-wizard";
-import { submitUpload } from "@/actions/uploads";
+import {
+  useUploadWizard,
+  type WizardSeed,
+  type WizardTrack,
+} from "@/lib/store/upload-wizard";
+import { submitUpload, updateUpload } from "@/actions/uploads";
 import { StepSong } from "./step-song";
 import { StepTracks } from "./step-tracks";
 import { StepPresets } from "./step-presets";
@@ -19,7 +23,7 @@ type Band = { id: string; name: string; slug: string };
 const STEPS = [
   { title: "Música", hint: "Escolha a banda e a música" },
   { title: "Instrumentos", hint: "Nome do envio e pedaleiras" },
-  { title: "Presets", hint: "Ajuste a pedaleira" },
+  { title: "Presets", hint: "Ajuste ou importe o .tkg" },
   { title: "Revisão", hint: "Confira e envie" },
 ];
 
@@ -27,14 +31,27 @@ export function UploadWizard({
   bands,
   models,
   preselectedSong,
+  seed,
 }: {
   bands: Band[];
   models: PedalModel[];
   preselectedSong?: { id: string; title: string; band: { id: string; name: string } };
+  /** Presente quando o wizard abre para editar um envio que já existe. */
+  seed?: WizardSeed;
 }) {
   const store = useUploadWizard();
-  const { step, setStep, tracks, songId, songTitle, bandName, title, note, reset } =
-    store;
+  const {
+    step,
+    setStep,
+    tracks,
+    songId,
+    songTitle,
+    bandName,
+    title,
+    note,
+    editingUploadId,
+    reset,
+  } = store;
   const router = useRouter();
   const [pending, startTransition] = useTransition();
 
@@ -42,6 +59,10 @@ export function UploadWizard({
   // O store é global e não persiste, então a semente só pode vir depois da
   // montagem no cliente (mutá-lo durante o SSR vazaria entre requisições).
   useEffect(() => {
+    if (seed) {
+      store.hydrate(seed);
+      return;
+    }
     if (preselectedSong && !songId) {
       store.setBand(preselectedSong.band);
       store.setSong({ id: preselectedSong.id, title: preselectedSong.title });
@@ -58,27 +79,39 @@ export function UploadWizard({
     true,
   ][step];
 
+  const editing = Boolean(editingUploadId);
+
   function submit() {
     startTransition(async () => {
-      const result = await submitUpload({
+      const payload = {
         songId,
         title: title.trim(),
         note: note.trim() || undefined,
         tracks: tracks.map((t) => ({
           name: t.name.trim(),
-          pedalModelId: t.pedalModelId,
+          // A principal é a primeira da lista — é ela que vai para a faixa.
+          pedalModelId: t.pedalModelIds[0],
           presets: t.presets.map((p) => ({
             name: p.name.trim(),
-            settings: p.settings,
+            boards: p.boards.map((b) => ({
+              pedalModelId: b.pedalModelId,
+              settings: b.settings,
+            })),
           })),
         })),
-      });
+      };
+
+      const result = editing
+        ? await updateUpload(editingUploadId, payload)
+        : await submitUpload(payload);
 
       if (!result.ok) {
         toast.error(result.message);
         return;
       }
-      toast.success("Presets enviados! Obrigado por contribuir.");
+      toast.success(
+        editing ? "Envio atualizado." : "Presets enviados! Obrigado por contribuir.",
+      );
       reset();
       router.push(result.redirectTo);
     });
@@ -169,7 +202,7 @@ export function UploadWizard({
             ) : (
               <Send className="size-4" />
             )}
-            Enviar presets
+            {editing ? "Salvar alterações" : "Enviar presets"}
           </Button>
         )}
       </div>
@@ -222,7 +255,10 @@ function ReviewStep({
             <p className="font-medium">
               {track.name}
               <span className="ml-2 text-xs font-normal text-muted-foreground">
-                {models.find((m) => m.id === track.pedalModelId)?.name}
+                {track.pedalModelIds
+                  .map((id) => models.find((m) => m.id === id)?.name)
+                  .filter(Boolean)
+                  .join(" · ")}
               </span>
             </p>
             <ul className="mt-2 flex flex-wrap gap-2">

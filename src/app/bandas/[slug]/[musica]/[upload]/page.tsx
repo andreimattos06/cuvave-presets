@@ -6,9 +6,13 @@ import { getCurrentUser } from "@/lib/auth";
 import { UploadViewer } from "@/components/catalog/upload-viewer";
 import { VoteButtons } from "@/components/catalog/vote-buttons";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ChevronLeft, Eye, ThumbsUp } from "lucide-react";
+import { CalendarDays, ChevronLeft, Eye, PencilLine, ThumbsUp } from "lucide-react";
+import { UploadActions } from "@/components/catalog/upload-actions";
 
 type Params = PageProps<"/bandas/[slug]/[musica]/[upload]">;
+
+/** Data curta, do jeito que se lê em português: 26/08/2026. */
+const shortDate = (iso: string) => new Date(iso).toLocaleDateString("pt-BR");
 
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { upload: uploadId } = await params;
@@ -37,6 +41,8 @@ export default async function UploadPage({ params }: Params) {
 
   const songPath = `/bandas/${band.slug}/${song.slug}`;
   const initials = (upload.author?.username ?? "??").slice(0, 2).toUpperCase();
+  const isOwner = user?.id === upload.author?.id;
+  const presetCount = upload.tracks.reduce((sum, t) => sum + t.presets.length, 0);
 
   return (
     <div className="mx-auto w-full max-w-5xl px-4 py-12 sm:px-6">
@@ -79,7 +85,29 @@ export default async function UploadPage({ params }: Params) {
               {upload.approvals}{" "}
               {upload.approvals === 1 ? "aprovação" : "aprovações"}
             </span>
+            <span className="inline-flex items-center gap-1">
+              <CalendarDays className="size-3.5" />
+              Enviado em {shortDate(upload.created_at)}
+            </span>
+            {/* Só aparece quando houve edição de fato — repetir a data de envio
+                em outra frase não diria nada a mais. */}
+            {upload.updated_at > upload.created_at && (
+              <span className="inline-flex items-center gap-1">
+                <PencilLine className="size-3.5" />
+                Editado em {shortDate(upload.updated_at)}
+              </span>
+            )}
           </div>
+
+          {isOwner && (
+            <div className="mt-3">
+              <UploadActions
+                uploadId={upload.id}
+                title={upload.title}
+                presetCount={presetCount}
+              />
+            </div>
+          )}
         </div>
 
         <VoteButtons
@@ -110,7 +138,7 @@ export default async function UploadPage({ params }: Params) {
       )}
 
       <div className="mt-8">
-        <UploadViewer upload={upload} />
+        <UploadViewer upload={upload} songTitle={song.title} />
       </div>
     </div>
   );

@@ -6,14 +6,19 @@ import { listUploadsByUser } from "@/lib/data/catalog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { UploadActions } from "@/components/catalog/upload-actions";
 import {
   CalendarDays,
   Layers,
+  PencilLine,
   SlidersHorizontal,
   ThumbsUp,
   Trophy,
   UploadCloud,
 } from "lucide-react";
+
+/** Data curta, do jeito que se lê em português: 26/08/2026. */
+const shortDate = (iso: string) => new Date(iso).toLocaleDateString("pt-BR");
 
 export const metadata: Metadata = {
   title: "Meu perfil — M-Vave Presets",
@@ -112,18 +117,24 @@ export default async function ProfilePage() {
           </div>
         ) : (
           <ul className="mt-4 space-y-3">
-            {uploads.map((upload, index) => (
-              <li key={upload.id}>
-                <Link
-                  href={
-                    upload.song?.band
-                      ? `/bandas/${upload.song.band.slug}/${upload.song.slug}/${upload.id}`
-                      : "/bandas"
-                  }
+            {uploads.map((upload, index) => {
+              const href = upload.song?.band
+                ? `/bandas/${upload.song.band.slug}/${upload.song.slug}/${upload.id}`
+                : "/bandas";
+              // Só mostra "editado em" quando de fato houve edição: repetir a
+              // data de envio em toda linha não diria nada.
+              const edited = upload.updated_at > upload.created_at;
+
+              return (
+                <li
+                  key={upload.id}
                   className="glass flex flex-wrap items-center gap-3 rounded-xl p-4 transition-colors hover:border-primary/40"
                 >
                   <div className="min-w-0 flex-1">
-                    <p className="flex items-center gap-2 truncate font-medium">
+                    <Link
+                      href={href}
+                      className="flex items-center gap-2 truncate font-medium transition-colors hover:text-primary"
+                    >
                       {upload.title}
                       {index === 0 && upload.score > 0 && (
                         <Badge className="gap-1 bg-primary/15 text-primary">
@@ -131,12 +142,23 @@ export default async function ProfilePage() {
                           Seu mais aprovado
                         </Badge>
                       )}
-                    </p>
+                    </Link>
                     <p className="mt-0.5 truncate text-xs text-muted-foreground">
                       {upload.song?.title ?? "Música removida"} ·{" "}
                       {upload.song?.band?.name} · {upload.views}{" "}
-                      {upload.views === 1 ? "visualização" : "visualizações"} ·{" "}
-                      {new Date(upload.created_at).toLocaleDateString("pt-BR")}
+                      {upload.views === 1 ? "visualização" : "visualizações"}
+                    </p>
+                    <p className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
+                      <span className="inline-flex items-center gap-1">
+                        <UploadCloud className="size-3" />
+                        Enviado em {shortDate(upload.created_at)}
+                      </span>
+                      {edited && (
+                        <span className="inline-flex items-center gap-1">
+                          <PencilLine className="size-3" />
+                          Editado em {shortDate(upload.updated_at)}
+                        </span>
+                      )}
                     </p>
                   </div>
 
@@ -152,9 +174,15 @@ export default async function ProfilePage() {
                     <ThumbsUp className="size-3 text-neon-green" />
                     {upload.score > 0 ? `+${upload.score}` : upload.score}
                   </span>
-                </Link>
-              </li>
-            ))}
+
+                  <UploadActions
+                    uploadId={upload.id}
+                    title={upload.title}
+                    presetCount={upload.presetCount}
+                  />
+                </li>
+              );
+            })}
           </ul>
         )}
       </section>

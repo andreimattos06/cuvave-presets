@@ -22,6 +22,8 @@ export const LIMITS = {
   presetNameMax: 40,
   tracksPerUpload: 10,
   presetsPerTrack: 8,
+  /** Pedaleiras diferentes descrevendo o mesmo trecho da música. */
+  boardsPerPreset: 4,
   searchQueryMax: 80,
 } as const;
 

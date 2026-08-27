@@ -1,8 +1,12 @@
 import type { Metadata } from "next";
-import { redirect } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser } from "@/lib/auth";
-import { listBands, listPedalModels } from "@/lib/data/catalog";
+import {
+  getUploadForEdit,
+  listBands,
+  listPedalModels,
+} from "@/lib/data/catalog";
 import { UploadWizard } from "@/components/upload/upload-wizard";
 
 export const metadata: Metadata = {
@@ -10,13 +14,38 @@ export const metadata: Metadata = {
 };
 
 export default async function UploadPage({ searchParams }: PageProps<"/enviar">) {
-  const user = await getCurrentUser();
-  if (!user) redirect("/login?next=/enviar");
-
   const params = await searchParams;
   const songId = typeof params.musica === "string" ? params.musica : undefined;
+  const editingId = typeof params.editar === "string" ? params.editar : undefined;
+
+  const user = await getCurrentUser();
+  if (!user) {
+    // Leva a música e o envio junto: sem eles, quem clicou em "Editar" e teve
+    // de entrar na conta cairia num formulário em branco depois do login.
+    const query = new URLSearchParams();
+    if (songId) query.set("musica", songId);
+    if (editingId) query.set("editar", editingId);
+    const next = query.size ? `/enviar?${query}` : "/enviar";
+    redirect(`/login?next=${encodeURIComponent(next)}`);
+  }
 
   const [bands, models] = await Promise.all([listBands(), listPedalModels()]);
+
+  // Modo edição: o envio precisa existir e ser do próprio usuário, senão 404 —
+  // abrir um formulário em branco esconderia o motivo.
+  let seed;
+  if (editingId) {
+    const upload = await getUploadForEdit(editingId, user.id);
+    if (!upload || !upload.song.band) notFound();
+    seed = {
+      uploadId: upload.id,
+      title: upload.title,
+      note: upload.note,
+      song: { id: upload.song.id, title: upload.song.title },
+      band: upload.song.band,
+      tracks: upload.tracks,
+    };
+  }
 
   let preselectedSong;
   if (songId) {
@@ -40,11 +69,12 @@ export default async function UploadPage({ searchParams }: PageProps<"/enviar">)
     <div className="mx-auto w-full max-w-5xl px-4 py-12 sm:px-6">
       <header>
         <h1 className="font-heading text-3xl font-semibold tracking-tight">
-          Enviar presets
+          {seed ? "Editar envio" : "Enviar presets"}
         </h1>
         <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-          Monte o arranjo como você toca: uma faixa por instrumento e até 8
-          presets por faixa, para trocar o som ao longo da música.
+          {seed
+            ? "Ajuste o que precisar e salve. Os votos e as visualizações que este envio já recebeu continuam valendo."
+            : "Monte o arranjo como você toca: uma faixa por instrumento e até 8 presets por faixa, para trocar o som ao longo da música."}
         </p>
       </header>
 
@@ -59,6 +89,7 @@ export default async function UploadPage({ searchParams }: PageProps<"/enviar">)
             bands={bands}
             models={models}
             preselectedSong={preselectedSong}
+            seed={seed}
           />
         )}
       </div>

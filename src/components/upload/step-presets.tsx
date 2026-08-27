@@ -6,7 +6,7 @@ import {
   useUploadWizard,
 } from "@/lib/store/upload-wizard";
 import { PedalBoard } from "@/components/pedalboard/pedal-board";
-import { DeviceTransfer } from "@/components/mvave/device-transfer";
+import { TkgImportDialog } from "@/components/mvave/tkg-panel";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -16,19 +16,30 @@ import { Guitar, Plus, Trash2 } from "lucide-react";
 import { LIMITS } from "@/lib/validations/limits";
 
 export function StepPresets({ models }: { models: PedalModel[] }) {
-  const { tracks, addPreset, updatePreset, removePreset } = useUploadWizard();
+  const { tracks, addPreset, updatePreset, setBoardSettings, removePreset } =
+    useUploadWizard();
   const [activeTrack, setActiveTrack] = useState(tracks[0]?.localId ?? "");
   const [activePreset, setActivePreset] = useState(
     tracks[0]?.presets[0]?.localId ?? "",
   );
+  /** Pedaleira aberta no painel — vale para a faixa toda, não só para um preset. */
+  const [activeModelId, setActiveModelId] = useState("");
 
   const track = tracks.find((t) => t.localId === activeTrack) ?? tracks[0];
   const preset =
     track?.presets.find((p) => p.localId === activePreset) ?? track?.presets[0];
-  // A pedaleira é do instrumento: todos os presets da faixa editam o mesmo painel.
-  const model = models.find((m) => m.id === track?.pedalModelId) ?? models[0];
 
-  if (!track || !preset) {
+  // As pedaleiras do instrumento, na ordem em que a pessoa escolheu.
+  const trackModels = (track?.pedalModelIds ?? [])
+    .map((id) => models.find((m) => m.id === id))
+    .filter((m) => m !== undefined);
+
+  const board =
+    preset?.boards.find((b) => b.pedalModelId === activeModelId) ?? preset?.boards[0];
+  const model =
+    models.find((m) => m.id === board?.pedalModelId) ?? trackModels[0] ?? models[0];
+
+  if (!track || !preset || !board || !model) {
     return (
       <p className="rounded-xl border border-dashed border-white/10 p-10 text-center text-sm text-muted-foreground">
         Volte ao passo anterior e adicione pelo menos um instrumento.
@@ -37,8 +48,8 @@ export function StepPresets({ models }: { models: PedalModel[] }) {
   }
 
   function changeSettings(settings: PresetSettings) {
-    if (!track || !preset) return;
-    updatePreset(track.localId, preset.localId, { settings });
+    if (!track || !preset || !board) return;
+    setBoardSettings(track.localId, preset.localId, board.localId, settings);
   }
 
   return (
@@ -52,6 +63,7 @@ export function StepPresets({ models }: { models: PedalModel[] }) {
             onClick={() => {
               setActiveTrack(t.localId);
               setActivePreset(t.presets[0]?.localId ?? "");
+              setActiveModelId("");
             }}
             className={cn(
               "flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
@@ -89,7 +101,7 @@ export function StepPresets({ models }: { models: PedalModel[] }) {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => addPreset(track.localId, model)}
+            onClick={() => addPreset(track.localId, trackModels)}
           >
             <Plus className="size-4" />
             Preset
@@ -99,6 +111,12 @@ export function StepPresets({ models }: { models: PedalModel[] }) {
           {track.presets.length}/{MAX_PRESETS_PER_TRACK}
         </span>
       </div>
+
+      <p className="text-xs text-muted-foreground">
+        Um preset por trecho da música — solo, refrão, verso. Cada um pode vir de
+        um arquivo .tkg que você já criou na pedaleira: use{" "}
+        <span className="text-foreground">Importar da pedaleira</span> aqui embaixo.
+      </p>
 
       {/* edição do preset ativo */}
       <div className="grid gap-4 sm:grid-cols-[1fr_auto] sm:items-end">
@@ -119,19 +137,44 @@ export function StepPresets({ models }: { models: PedalModel[] }) {
             />
           </div>
           <div>
-            <Label>Pedaleira do instrumento</Label>
-            <p className="mt-1.5 flex h-9 items-center rounded-md border border-white/[0.08] bg-white/[0.02] px-3 text-sm">
-              {model.name}
-            </p>
+            <Label>Pedaleira</Label>
+            {preset.boards.length > 1 ? (
+              // Mais de um aparelho no mesmo trecho: a pessoa ajusta um de cada
+              // vez, e quem for ver o envio escolhe qual quer olhar.
+              <div className="mt-1.5 flex flex-wrap gap-1.5">
+                {preset.boards.map((b) => {
+                  const boardModel = models.find((m) => m.id === b.pedalModelId);
+                  return (
+                    <button
+                      key={b.localId}
+                      type="button"
+                      onClick={() => setActiveModelId(b.pedalModelId)}
+                      className={cn(
+                        "rounded-full border px-2.5 py-1 text-xs font-medium transition-colors",
+                        b.localId === board.localId
+                          ? "border-primary/40 bg-primary/15 text-primary"
+                          : "border-white/10 text-muted-foreground hover:text-foreground",
+                      )}
+                    >
+                      {boardModel?.name ?? "pedaleira"}
+                    </button>
+                  );
+                })}
+              </div>
+            ) : (
+              <p className="mt-1.5 flex h-9 items-center rounded-md border border-white/[0.08] bg-white/[0.02] px-3 text-sm">
+                {model.name}
+              </p>
+            )}
           </div>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          {/* Puxa o som direto do aparelho em vez de refazer knob por knob. */}
-          <DeviceTransfer
+          {/* Puxa o som direto do aparelho em vez de refazer knob por knob:
+              cada trecho da música tem o seu, então o botão é por preset. */}
+          <TkgImportDialog
             model={model}
-            presetName={preset.name}
-            settings={preset.settings}
+            settings={board.settings}
             onImport={changeSettings}
           />
 
@@ -155,10 +198,11 @@ export function StepPresets({ models }: { models: PedalModel[] }) {
       </div>
 
       <PedalBoard
+        key={board.localId}
         modelName={model.name}
         config={model.config}
         presetName={preset.name}
-        value={preset.settings}
+        value={board.settings}
         onChange={changeSettings}
       />
     </div>

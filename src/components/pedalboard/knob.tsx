@@ -1,9 +1,9 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { formatParamValue, isSteppedParam, type KnobParam } from "@/types/pedal";
+import { formatParamValue, isSwitchParam, type KnobParam } from "@/types/pedal";
 
 /**
  * Knob cromado serrilhado, no formato das M-Vave reais: corpo metálico que gira,
@@ -61,12 +61,15 @@ export function Knob({
   onFocusValue?: (value: number | undefined) => void;
 }) {
   const dragState = useRef<{ startY: number; startValue: number } | null>(null);
+  const knobRef = useRef<HTMLDivElement>(null);
   const [dragging, setDragging] = useState(false);
+  /** Anda `steps` passos a partir do valor atual, sem reassinar o listener. */
+  const commitRef = useRef<(steps: number) => void>(() => {});
 
   const { min, max, step } = param;
   // Chaves (IR Cab, Type) andam de posição em posição; a escala mostra uma
   // marca por posição em vez das 11 divisões do knob contínuo.
-  const stepped = isSteppedParam(param);
+  const stepped = isSwitchParam(param);
   const ticks = stepped ? Math.round((max - min) / step) + 1 : TICKS;
   const pct = clamp((value - min) / (max - min), 0, 1);
   const deg = START_DEG + pct * SWEEP_DEG;
@@ -79,6 +82,10 @@ export function Knob({
     },
     [onChange, onFocusValue, min, max, step],
   );
+
+  useEffect(() => {
+    commitRef.current = (steps: number) => commit(value + steps * step);
+  }, [commit, value, step]);
 
   const handlePointerMove = useCallback(
     (e: React.PointerEvent<HTMLDivElement>) => {
@@ -115,9 +122,26 @@ export function Knob({
     [disabled, value, step, min, max, commit],
   );
 
+  // O scroll sobre o knob mexe no valor e não rola a página. Precisa de um
+  // listener nativo não-passivo: o onWheel do React é registrado como passivo,
+  // e num listener passivo o preventDefault é ignorado pelo navegador.
+  useEffect(() => {
+    const el = knobRef.current;
+    if (!el || disabled) return;
+
+    function onWheel(e: WheelEvent) {
+      e.preventDefault();
+      commitRef.current(e.deltaY > 0 ? -1 : 1);
+    }
+
+    el.addEventListener("wheel", onWheel, { passive: false });
+    return () => el.removeEventListener("wheel", onWheel);
+  }, [disabled]);
+
   return (
     <div className="flex flex-col items-center gap-1 select-none">
       <div
+        ref={knobRef}
         role="slider"
         tabIndex={disabled ? -1 : 0}
         aria-label={param.label}
@@ -147,10 +171,6 @@ export function Knob({
         onPointerLeave={() => !dragging && onFocusValue?.(undefined)}
         onFocus={() => onFocusValue?.(value)}
         onBlur={() => onFocusValue?.(undefined)}
-        onWheel={(e) => {
-          if (disabled) return;
-          commit(value + (e.deltaY > 0 ? -step : step));
-        }}
         onKeyDown={handleKeyDown}
         onDoubleClick={() => !disabled && commit(param.default)}
         className={cn(

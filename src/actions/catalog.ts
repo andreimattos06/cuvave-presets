@@ -6,7 +6,12 @@ import { getCurrentUser } from "@/lib/auth";
 import { slugify } from "@/lib/slug";
 import { bandSchema, songSchema } from "@/lib/validations/catalog";
 import type { ActionState } from "@/lib/action-state";
-import { consumeRateLimit, rateLimitMessage } from "@/lib/rate-limit";
+import {
+  consumeRateLimits,
+  getClientIp,
+  isQuotaError,
+  rateLimitMessage,
+} from "@/lib/rate-limit";
 
 /**
  * Cadastro colaborativo do catálogo: qualquer usuário logado pode criar uma
@@ -33,7 +38,11 @@ export async function createBand(
     };
   }
 
-  const limited = await consumeRateLimit("catalogWrite", `user:${user.id}`);
+  const limited = await consumeRateLimits([
+    { action: "catalogWrite", scope: `user:${user.id}` },
+    { action: "catalogWriteDay", scope: `user:${user.id}` },
+    { action: "catalogWriteIp", scope: `ip:${await getClientIp()}` },
+  ]);
   if (!limited.ok) {
     return {
       status: "error",
@@ -66,7 +75,14 @@ export async function createBand(
     .single();
 
   if (error) {
-    return { status: "error", message: "Não foi possível cadastrar a banda." };
+    // A cota diária mora no trigger do banco: é a mesma para quem chega por
+    // aqui e para quem chama o PostgREST direto.
+    return {
+      status: "error",
+      message: isQuotaError(error)
+        ? "Você já cadastrou muitas bandas hoje. Tente de novo amanhã."
+        : "Não foi possível cadastrar a banda.",
+    };
   }
 
   revalidatePath("/bandas");
@@ -93,7 +109,11 @@ export async function createSong(
     };
   }
 
-  const limited = await consumeRateLimit("catalogWrite", `user:${user.id}`);
+  const limited = await consumeRateLimits([
+    { action: "catalogWrite", scope: `user:${user.id}` },
+    { action: "catalogWriteDay", scope: `user:${user.id}` },
+    { action: "catalogWriteIp", scope: `ip:${await getClientIp()}` },
+  ]);
   if (!limited.ok) {
     return {
       status: "error",
@@ -131,7 +151,12 @@ export async function createSong(
     .single();
 
   if (error) {
-    return { status: "error", message: "Não foi possível cadastrar a música." };
+    return {
+      status: "error",
+      message: isQuotaError(error)
+        ? "Você já cadastrou muitas músicas hoje. Tente de novo amanhã."
+        : "Não foi possível cadastrar a música.",
+    };
   }
 
   revalidatePath("/bandas");

@@ -14,14 +14,25 @@ export type RateLimitRule = { limit: number; windowSeconds: number };
 /**
  * Tetos por ação. Os de autenticação são apertados de propósito: é onde
  * força bruta e enumeração de conta doem.
+ *
+ * Escrita de catálogo e envio vêm em três camadas — hora e dia por usuário,
+ * hora por IP. A da hora deixa o uso normal em rajada passar; a do dia impede
+ * que a rajada vire rotina; e a do IP alcança quem cria várias contas para
+ * driblar as duas primeiras. Nenhuma delas substitui as cotas do banco
+ * (supabase/migrations/0009_creation_quotas.sql), que valem mesmo para quem
+ * fala com o PostgREST sem passar pelo site.
  */
 export const RATE_LIMITS = {
   login: { limit: 10, windowSeconds: 300 },
   signup: { limit: 5, windowSeconds: 3600 },
   passwordRecovery: { limit: 5, windowSeconds: 3600 },
   passwordUpdate: { limit: 10, windowSeconds: 3600 },
-  catalogWrite: { limit: 30, windowSeconds: 3600 },
+  catalogWrite: { limit: 20, windowSeconds: 3600 },
+  catalogWriteDay: { limit: 60, windowSeconds: 86400 },
+  catalogWriteIp: { limit: 40, windowSeconds: 3600 },
   upload: { limit: 12, windowSeconds: 3600 },
+  uploadDay: { limit: 30, windowSeconds: 86400 },
+  uploadIp: { limit: 20, windowSeconds: 3600 },
   vote: { limit: 60, windowSeconds: 300 },
   view: { limit: 20, windowSeconds: 3600 },
   search: { limit: 90, windowSeconds: 60 },
@@ -84,6 +95,29 @@ export async function consumeRateLimit(
     console.warn("[rate-limit] falhou, liberando a chamada:", error);
     return { ok: true };
   }
+}
+
+/**
+ * Confere várias camadas de uma vez e para na primeira que estourar. As
+ * anteriores já contaram a tentativa — é de propósito: quem bate no teto do dia
+ * não deve ganhar de volta a cota da hora.
+ */
+export async function consumeRateLimits(
+  checks: { action: RateLimitAction; scope?: string }[],
+): Promise<RateLimitVerdict> {
+  for (const check of checks) {
+    const verdict = await consumeRateLimit(check.action, check.scope);
+    if (!verdict.ok) return verdict;
+  }
+  return { ok: true };
+}
+
+/**
+ * Cota diária estourada no banco (54000 = program_limit_exceeded), lançada
+ * pelos triggers de bands/songs/uploads.
+ */
+export function isQuotaError(error: { code?: string } | null) {
+  return error?.code === "54000";
 }
 
 /** Mensagem pronta para o usuário, com o tempo de espera em português. */
